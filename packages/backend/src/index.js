@@ -1,34 +1,39 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import deliveryController from './controllers/DeliveryController.js';
 
+// 1. Configurações de Caminho e Ambiente (Sempre primeiro)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); 
+
+// 2. Instanciação do App
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// 3. Middlewares Globais (Portões de entrada)
+app.use(cors());           // Permite que o Frontend acesse a API
+app.use(express.json());   // Converte o corpo das requisições para JSON
 
-// Banco de Dados - Escalabilidade Passiva com MongoDB Atlas ou Local
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/calango-food';
+// 4. Conexão com Banco de Dados
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('🐊 Calango-food: MongoDB Conectado'))
+  .catch(err => console.error('Erro de conexão:', err));
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('🐊 MongoDB conectado com sucesso!'))
-  .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
-
-// Rota de Teste (Health Check)
+// 5. Definição de Rotas (Depois dos middlewares)
 app.get('/', (req, res) => {
-  res.json({ 
-    message: "Calango-food API Online",
-    status: "Scalable & Passive Mode"
-  });
+  res.json({ status: "Online", engine: "Node.js + MongoDB" });
 });
 
-// Exemplo de como as rotas seguirão os Patterns (Apenas para estrutura inicial)
-// app.use('/api/orders', require('./routes/orderRoutes'));
+// Rotas de Logística do Calango-food
+app.get('/api/drivers', deliveryController.listDrivers);
+app.post('/api/dispatch', deliveryController.dispatchOrder);
 
+// 6. Inicialização do Servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Backend rodando na porta ${PORT}`);
-
+  console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
 });
