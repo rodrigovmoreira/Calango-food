@@ -5,13 +5,14 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import deliveryController from './controllers/DeliveryController.js';
+import orderController from './controllers/OrderController.js';
 
 // 1. Configurações de Caminho e Ambiente (Sempre primeiro)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); 
 
-// 2. Instanciação do App
+// 2. Instanciação do App Express
 const app = express();
 const PORT = process.env.PORT || 3002;
 
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 // Rotas de Logística do Calango-food
 app.get('/api/drivers', deliveryController.listDrivers);
 app.post('/api/dispatch', deliveryController.dispatchOrder);
+app.post('/api/orders', orderController.createOrder);
 
 // 6. Inicialização do Servidor
 app.listen(PORT, () => {
