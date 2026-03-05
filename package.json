@@ -1,0 +1,18 @@
+{
+  "name": "calango-food",
+  "version": "1.0.0",
+  "description": "Sistema de delivery multitenant com foco em escalabilidade passiva",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && cd packages/backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd packages/backend && npm run dev",
+    "frontend": "cd packages/frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
