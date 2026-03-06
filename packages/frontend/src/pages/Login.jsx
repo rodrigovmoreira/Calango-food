@@ -1,50 +1,47 @@
 import React, { useState } from 'react';
 import {
-  Box, Flex, VStack, Heading, Text, Image, Card, 
-  Tabs, Stack, Alert
+  Box, Flex, VStack, Heading, Text, Image, Card, Tabs, Input, Stack, Icon
 } from '@chakra-ui/react';
-// Importe os componentes de UI da sua pasta local, não da lib principal
-import { Button } from "../components/ui/button"; 
-import { Field } from "../components/ui/field"; // O substituto do FormControl na v3
-import { Input } from "@chakra-ui/react"; 
-import { Toaster, toaster } from "../components/ui/toaster"; 
+import { Button } from "../components/ui/button";
+import { Field } from "../components/ui/field"; // Usando o snippet local
+import { Toaster, toaster } from "../components/ui/toaster";
 import { authAPI } from '../services/api';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { FaUtensils } from 'react-icons/fa';
+import { LuEye, LuEyeOff } from "react-icons/lu";
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const { dispatch } = useApp();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleAuth = async (e, type) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
     const formData = new FormData(e.target);
-    const data = {
-      email: formData.get('email'),
-      password: formData.get('password')
-    };
+    const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await authAPI.login(data);
+      const response = type === 'login' 
+        ? await authAPI.login(data) 
+        : await authAPI.register(data);
+
       const { token, user } = response.data;
-      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       dispatch({ type: 'SET_USER', payload: user });
-      
-      toaster.create({
-        title: "Bem-vindo!",
-        type: "success",
-      });
-      
+
+      toaster.create({ title: `Bem-vindo, ${user.name}!`, type: "success" });
       navigate('/kitchen');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao entrar');
+      toaster.create({ 
+        title: "Erro na autenticação", 
+        description: err.response?.data?.message || "Verifique seus dados", 
+        type: "error" 
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -52,39 +49,90 @@ const Login = () => {
   return (
     <Flex minH="100vh" direction={{ base: 'column', md: 'row' }}>
       <Toaster />
-      
-      <Flex flex={1} bgGradient="linear(to-br, brand.500, brand.700)" justify="center" align="center" p={12} color="white">
+
+      {/* Painel Esquerdo - Identidade Visual Calango-food */}
+      <Flex
+        flex={1}
+        bgGradient="linear(to-br, brand.500 48%, brand.700)"
+        justify="center"
+        align="center"
+        direction="column"
+        p={8}
+        color="white"
+      >
         <VStack gap={6}>
-          <Heading size="3xl" fontWeight="extrabold">Calango-food</Heading>
-          <Text fontSize="xl">Delivery inteligente e automatizado.</Text>
+          <Box bg="whiteAlpha.200" p={8} borderRadius="full" backdropFilter="blur(10px)">
+             <Icon as={FaUtensils} boxSize="100px" />
+          </Box>
+          <Heading size="3xl" fontWeight="bold">Calango-food</Heading>
+          <Text fontSize="xl" opacity={0.9}>Sua Cozinha Digital Automatizada</Text>
         </VStack>
       </Flex>
 
-      <Flex flex={1} bg="gray.50" justify="center" align="center" p={8}>
-        <Card.Root maxW="md" w="full" variant="outline" boxShadow="xl" bg="white">
-          <Card.Body p={10}>
-            <form onSubmit={handleLogin}>
-              <VStack gap={6} align="stretch">
-                <Heading size="lg" textAlign="center">Entrar</Heading>
-                
-                {error && <Alert.Root status="error"><Alert.Content>{error}</Alert.Content></Alert.Root>}
+      {/* Painel Direito - Formulário com Abas */}
+      <Flex flex={1} bg="gray.50" justify="center" align="center" p={4}>
+        <Box w="full" maxW="md">
+          <Card.Root variant="outline" boxShadow="2xl" borderRadius="2xl" bg="white">
+            <Card.Body p={8}>
+              <Tabs.Root defaultValue="login" colorPalette="brand" variant="enclosed">
+                <Tabs.List w="full" mb={6}>
+                  <Tabs.Trigger value="login" flex={1} py={3} fontWeight="bold">Login</Tabs.Trigger>
+                  <Tabs.Trigger value="register" flex={1} py={3} fontWeight="bold">Cadastro</Tabs.Trigger>
+                </Tabs.List>
 
-                {/* Na v3 usamos Field em vez de FormControl */}
-                <Field label="E-mail">
-                  <Input name="email" type="email" placeholder="seu@email.com" size="lg" />
-                </Field>
+                <Tabs.Content value="login">
+                  <form onSubmit={(e) => handleAuth(e, 'login')}>
+                    <VStack gap={4} align="stretch">
+                      <Heading size="md" textAlign="center" mb={2} color="gray.700">Bem-vindo de volta</Heading>
+                      <Field label={<Text color="gray.700">E-mail</Text>}>
+                        <Input name="email" type="email" placeholder="seu@email.com" color="gray.800" borderColor="gray.300" />
+                      </Field>
+                      <Field label={<Text color="gray.700">Senha</Text>}>
+                        <Box position="relative" w="full">
+                           <Input 
+                            name="password" 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="Sua senha" 
+                            color="gray.800" 
+                            borderColor="gray.300" 
+                          />
+                          <Box 
+                            position="absolute" right="3" top="50%" transform="translateY(-50%)" 
+                            cursor="pointer" color="gray.400" onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <LuEyeOff /> : <LuEye />}
+                          </Box>
+                        </Box>
+                      </Field>
+                      <Button type="submit" colorPalette="brand" size="lg" loading={loading}>Entrar</Button>
+                    </VStack>
+                  </form>
+                </Tabs.Content>
 
-                <Field label="Senha">
-                  <Input name="password" type="password" placeholder="••••••••" size="lg" />
-                </Field>
-
-                <Button type="submit" colorPalette="brand" size="xl" loading={loading}>
-                  Acessar Sistema
-                </Button>
-              </VStack>
-            </form>
-          </Card.Body>
-        </Card.Root>
+                <Tabs.Content value="register">
+                  <form onSubmit={(e) => handleAuth(e, 'register')}>
+                    <VStack gap={4} align="stretch">
+                      <Heading size="md" textAlign="center" mb={2} color="gray.700">Criar sua conta</Heading>
+                      <Field label={<Text color="gray.700">Nome da Empresa</Text>}>
+                        <Input name="company" placeholder="Ex: Calango Burguer" color="gray.800" borderColor="gray.300" />
+                      </Field>
+                      <Field label={<Text color="gray.700">E-mail</Text>}>
+                        <Input name="email" type="email" placeholder="contato@empresa.com" color="gray.800" borderColor="gray.300" />
+                      </Field>
+                      <Field label={<Text color="gray.700">Senha</Text>}>
+                        <Input name="password" type="password" placeholder="Mínimo 6 caracteres" color="gray.800" borderColor="gray.300" />
+                      </Field>
+                      <Button type="submit" colorPalette="brand" size="lg" loading={loading}>Cadastrar Empresa</Button>
+                    </VStack>
+                  </form>
+                </Tabs.Content>
+              </Tabs.Root>
+            </Card.Body>
+          </Card.Root>
+          <Text fontSize="xs" color="gray.500" textAlign="center" mt={6}>
+            Sistema de atendimento automatizado Rodrigo Dev &copy; 2026
+          </Text>
+        </Box>
       </Flex>
     </Flex>
   );
