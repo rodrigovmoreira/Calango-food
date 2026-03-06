@@ -1,5 +1,7 @@
 import { extendTheme } from '@chakra-ui/react';
-import { mode } from '@chakra-ui/theme-tools';
+
+// Função utilitária para substituir o theme-tools sem quebrar seu código
+const mode = (light, dark) => (props) => (props.colorMode === 'dark' ? dark : light);
 
 const config = {
   initialColorMode: 'light',
