@@ -41,7 +41,8 @@ export default function Sidebar({ children }) {
       <Box
         transition="3s ease"
         bg="white"
-        borderRight="1px"
+        borderRightWidth="1px"
+        borderRightStyle="solid"
         borderRightColor="gray.200"
         w={{ base: 'full', md: 60 }}
         pos="fixed"

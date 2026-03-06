@@ -7,7 +7,6 @@ import axios from 'axios';
 
 export default function Kitchen() {
   const [orders, setOrders] = useState([]);
-  const toast = toaster();
 
   // Carrega pedidos em preparo
   useEffect(() => {
@@ -29,40 +28,43 @@ export default function Kitchen() {
         restaurantAddress: "Rua do Restaurante, 100"
       });
 
-      toast({
+      toaster.create({
         title: "Motoboy Chamado!",
         description: `Enviado para: ${response.data.driverName}`,
-        status: "success",
+        type: "success",
       });
-    } catch (err) {
-      toast({ title: "Erro ao chamar motoboy", status: "error" });
+    } catch (_err) {
+      toaster.create({ title: "Erro ao chamar motoboy", type: "error" });
     }
   };
 
   return (
-    <Box p={8}>
-      <Heading mb={8} color="brand.500">Pedidos em Preparo</Heading>
-      <SimpleGrid columns={[1, 2, 3]} spacing={6}>
+    <Sidebar>
+      <Box p={8}>
+        <Heading mb={8} color="brand.500">Pedidos em Preparo</Heading>
+        <SimpleGrid columns={[1, 2, 3]} spacing={6}>
         {orders.map(order => (
-          <Card key={order._id}>
-            <CardHeader d="flex" justifyContent="space-between">
+          <Card.Root key={order._id}>
+            <Card.Header display="flex" justifyContent="space-between" flexDirection="row">
               <Heading size="sm">Pedido #{order._id.slice(-4)}</Heading>
-              <Badge colorScheme="orange">Preparando</Badge>
-            </CardHeader>
-            <CardBody>
+              <Badge colorPalette="orange">Preparando</Badge>
+            </Card.Header>
+            <Card.Body>
               <Text fontWeight="bold">{order.delivery.address}</Text>
               {order.items.map(item => (
                 <Text key={item.name}>{item.quantity}x {item.name}</Text>
               ))}
-            </CardBody>
-            <CardFooter>
+            </Card.Body>
+            <Card.Footer>
               <Button variant="brand" w="full" onClick={() => handleDispatch(order)}>
                 Chamar Motoboy
               </Button>
-            </CardFooter>
-          </Card>
+            </Card.Footer>
+          </Card.Root>
         ))}
-      </SimpleGrid>
-    </Box>
+        </SimpleGrid>
+        <Toaster />
+      </Box>
+    </Sidebar>
   );
 }
