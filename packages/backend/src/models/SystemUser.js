@@ -1,29 +1,24 @@
-const SystemUser = require('../models/SystemUser');
-const jwt = require('jsonwebtoken');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-exports.register = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+const systemUserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true, select: false },
+  role: { type: String, default: 'vendedor' }
+});
 
-    // Criando o usuário no MongoDB (Collection: systemusers)
-    const newUser = await SystemUser.create({
-      name,
-      email,
-      password,
-      role: 'vendedor' // Valor padrão definido no seu Model
-    });
+// Hash da senha antes de salvar
+systemUserSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 12);
+});
 
-    // Gerando o token com o ID do usuário (que será o tenantId)
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: '7d'
-    });
-
-    res.status(201).json({
-      status: 'success',
-      token,
-      data: { user: newUser }
-    });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+// Método para verificar senha no login
+systemUserSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
+
+
+const SystemUser = mongoose.model('SystemUser', systemUserSchema);
+export default SystemUser;

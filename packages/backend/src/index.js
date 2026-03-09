@@ -10,6 +10,7 @@ import WppService from './services/notifications/WppService.js';
 import deliveryController from './controllers/DeliveryController.js';
 import orderController from './controllers/OrderController.js';
 import webhookController from './controllers/WebhookController.js';
+import authRoutes from './routes/authRoutes.js';
 
 // 1. Configurações de Caminho e Ambiente (Sempre primeiro)
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +28,7 @@ const PORT = process.env.PORT || 3002;
 // 3. Middlewares Globais (Portões de entrada)
 app.use(cors());           // Permite que o Frontend acesse a API
 app.use(express.json());   // Converte o corpo das requisições para JSON
+app.use('/api/auth', authRoutes);
 
 // Inicializa o motor de WhatsApp passando o Socket.io
 WppService.initialize(io);
