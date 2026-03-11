@@ -1,15 +1,14 @@
 import {
   Box, Container, Flex, Heading, HStack, SimpleGrid, Stack, Text, VStack,
-  List, Icon, Image, Float
+  Icon, Badge, Float
 } from '@chakra-ui/react';
 import { Button } from "../components/ui/button";
 import { Card } from "@chakra-ui/react";
 import { Avatar } from "../components/ui/avatar";
-import { Badge } from "@chakra-ui/react";
 import { useNavigate } from 'react-router-dom';
 import { 
   FaWhatsapp, FaUtensils, FaMotorcycle, 
-  FaQrcode, FaCommentDots, FaTimes, FaStar, FaRobot, FaCalendarCheck, FaImages
+  FaQrcode, FaCommentDots, FaTimes
 } from 'react-icons/fa';
 import React, { useState } from 'react';
 
@@ -69,7 +68,7 @@ const LandingPage = () => {
               lineHeight="1.1"
               color="gray.900"
             >
-              Transforme seu WhatsApp em uma <Text as="span" color="brand.500">Máquina de Vendas</Text>
+              Transforme seu WhatsApp em uma <Box as="span" color="brand.500">Máquina de Vendas</Box>
             </Heading>
             <Text fontSize="xl" color="gray.600">
               Cardápio digital, pagamentos via PIX e integração com motoboys. Tudo automático, 24h por dia.
@@ -105,7 +104,7 @@ const LandingPage = () => {
             >
               <Box bg="#075e54" p={3} color="white">
                 <HStack gap={3}>
-                  <Avatar size="sm" fallback={<FaUtensils />} bg="brand.400" />
+                  <Avatar size="sm" name="Calango Burguer" bg="brand.400" />
                   <VStack align="start" gap={0}>
                     <Text fontWeight="bold" fontSize="sm">Calango Burguer</Text>
                     <Text fontSize="xs" opacity={0.8}>Online</Text>
@@ -115,13 +114,14 @@ const LandingPage = () => {
               <Card.Body p={4} minH="400px" display="flex" flexDirection="column" gap={4}>
                 <ChatMessage isUser>Olá! Quero um Combo Calango com Batata.</ChatMessage>
                 <ChatMessage>
-                  <Text fontWeight="bold" color="brand.600">CalangoBot:</Text>
+                  <Box as="span" fontWeight="bold" color="brand.600">CalangoBot: </Box>
                   Excelente escolha! 🍔 O total fica R$ 45,90. 
                   Deseja pagar via PIX para agilizar a entrega?
                 </ChatMessage>
                 <ChatMessage isUser>Sim, mande a chave.</ChatMessage>
                 <ChatMessage>
-                  ✅ <b>Pedido Confirmado!</b><br />
+                  <Box as="span" fontWeight="bold" color="green.600">✅ Pedido Confirmado!</Box>
+                  <br />
                   Seu pagamento foi aprovado e o motoboy já foi acionado.
                 </ChatMessage>
               </Card.Body>
@@ -225,8 +225,9 @@ const ChatMessage = ({ isUser, children }) => (
       borderBottomLeftRadius={isUser ? "2xl" : "0"}
       maxW="80%"
       boxShadow="sm"
+      fontSize="sm" // Aplicado diretamente na Box para evitar Text dentro de Text
     >
-      <Text fontSize="sm">{children}</Text>
+      {children}
     </Box>
   </Flex>
 );

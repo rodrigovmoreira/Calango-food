@@ -1,68 +1,118 @@
-import { Box, SimpleGrid, Card, Heading, Text, Badge } from '@chakra-ui/react';
+import { Box, SimpleGrid, Card, Heading, Text, Badge, VStack } from '@chakra-ui/react';
 import { Toaster, toaster } from "../components/ui/toaster";
 import { Button } from "../components/ui/button";
 import Sidebar from '../components/Sidebar';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { foodAPI } from '../services/api'; // Usando sua API configurada
+import { useApp } from '../context/AppContext'; // Para pegar o tenantId
 
 export default function Kitchen() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { state } = useApp(); //
 
-  // Carrega pedidos em preparo
+  // Busca pedidos REAIS do backend filtrados pelo tenantId logado
   useEffect(() => {
-    // Aqui você faria o GET /api/orders?status=preparing
-    // Simulando um pedido para teste:
-    setOrders([{
-      _id: '123',
-      total: 85.50,
-      delivery: { address: 'Avenida Paulista, 1578' },
-      items: [{ name: 'Pizza Calabresa', quantity: 1 }]
-    }]);
-  }, []);
+    const fetchOrders = async () => {
+      try {
+        // Busca apenas pedidos com status 'preparing'
+        const response = await foodAPI.getOrders('preparing');
+        setOrders(response.data);
+      } catch (err) {
+        toaster.create({ 
+          title: "Erro ao carregar pedidos", 
+          description: err.response?.data?.message || "Verifique sua conexão",
+          type: "error" 
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (state.user) fetchOrders();
+  }, [state.user]);
 
   const handleDispatch = async (order) => {
     try {
-      const response = await axios.post('http://localhost:3002/api/dispatch', {
-        tenantId: "SEU_TENANT_ID", // Viria do contexto do login
-        address: order.delivery.address,
-        restaurantAddress: "Rua do Restaurante, 100"
+      // Chama a logística integrada
+      const response = await foodAPI.dispatchOrder({
+        orderId: order._id,
+        address: order.delivery.address
       });
 
       toaster.create({
         title: "Motoboy Chamado!",
-        description: `Enviado para: ${response.data.driverName}`,
+        description: `Motorista a caminho para o pedido #${order._id.slice(-4)}`,
         type: "success",
       });
-    } catch (_err) {
-      toaster.create({ title: "Erro ao chamar motoboy", type: "error" });
+      
+      // Remove da tela após despachar (ou atualiza o status)
+      setOrders(prev => prev.filter(o => o._id !== order._id));
+    } catch (err) {
+      toaster.create({ 
+        title: "Erro ao chamar motoboy", 
+        description: "Verifique as configurações de entrega",
+        type: "error" 
+      });
     }
   };
 
   return (
     <Sidebar>
-      <Box p={8}>
-        <Heading mb={8} color="brand.500">Pedidos em Preparo</Heading>
-        <SimpleGrid columns={[1, 2, 3]} spacing={6}>
-        {orders.map(order => (
-          <Card.Root key={order._id}>
-            <Card.Header display="flex" justifyContent="space-between" flexDirection="row">
-              <Heading size="sm">Pedido #{order._id.slice(-4)}</Heading>
-              <Badge colorPalette="orange">Preparando</Badge>
-            </Card.Header>
-            <Card.Body>
-              <Text fontWeight="bold">{order.delivery.address}</Text>
-              {order.items.map(item => (
-                <Text key={item.name}>{item.quantity}x {item.name}</Text>
-              ))}
-            </Card.Body>
-            <Card.Footer>
-              <Button variant="brand" w="full" onClick={() => handleDispatch(order)}>
-                Chamar Motoboy
-              </Button>
-            </Card.Footer>
-          </Card.Root>
-        ))}
-        </SimpleGrid>
+      <Box p={{ base: 4, md: 8 }}>
+        <Heading size="xl" mb={8} color="brand.500">Cozinha Digital</Heading>
+        
+        {loading ? (
+          <Text>Carregando pedidos...</Text>
+        ) : (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+            {orders.map(order => (
+              <Card.Root key={order._id} variant="outline" boxShadow="md">
+                <Card.Header display="flex" justifyContent="space-between" flexDirection="row" alignItems="center">
+                  <Heading size="md">Pedido #{order._id.slice(-4)}</Heading>
+                  <Badge colorPalette="orange" variant="solid">Preparando</Badge>
+                </Card.Header>
+                
+                <Card.Body>
+                  <VStack align="stretch" gap={3}>
+                    {/* Usando Box como container para evitar erro de aninhamento de <p> */}
+                    <Box pb={2} borderBottomWidth="1px">
+                      <Text fontWeight="bold" fontSize="sm" color="gray.600">ENTREGAR EM:</Text>
+                      <Text fontSize="md">{order.delivery.address}</Text>
+                    </Box>
+
+                    <Box>
+                      <Text fontWeight="bold" fontSize="sm" color="gray.600" mb={1}>ITENS:</Text>
+                      {order.items.map((item, idx) => (
+                        <Text key={`${order._id}-item-${idx}`} fontSize="sm">
+                          <Box as="span" fontWeight="bold" color="brand.500">{item.quantity}x</Box> {item.name}
+                        </Text>
+                      ))}
+                    </Box>
+                  </VStack>
+                </Card.Body>
+
+                <Card.Footer>
+                  <Button 
+                    colorPalette="brand" 
+                    w="full" 
+                    onClick={() => handleDispatch(order)}
+                    disabled={!order.delivery.address}
+                  >
+                    Chamar Motoboy
+                  </Button>
+                </Card.Footer>
+              </Card.Root>
+            ))}
+          </SimpleGrid>
+        )}
+
+        {orders.length === 0 && !loading && (
+          <VStack py={20} opacity={0.5}>
+            <Text fontSize="lg">Nenhum pedido em preparo no momento.</Text>
+          </VStack>
+        )}
+        
         <Toaster />
       </Box>
     </Sidebar>

@@ -16,6 +16,8 @@ systemUserSchema.pre('save', async function() {
 
 // Método para verificar senha no login
 systemUserSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+  // Se userPassword for undefined, o bcrypt vai dar o erro que você viu
+  if (!userPassword) return false;
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 

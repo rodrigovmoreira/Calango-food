@@ -7,7 +7,7 @@ const initialState = {
   user: null,
   whatsappStatus: {
     isConnected: false,
-    mode: 'Iniciando...',
+    mode: 'Desconectado',
     qrCode: null,
   },
   loading: false
@@ -18,7 +18,7 @@ function appReducer(state, action) {
     case 'SET_USER':
       return { ...state, user: action.payload };
     case 'LOGOUT':
-      return { ...state, user: null, whatsappStatus: initialState.whatsappStatus };
+      return { ...initialState };
     case 'SET_QR_CODE':
       return {
         ...state,
@@ -36,7 +36,7 @@ function appReducer(state, action) {
           ...state.whatsappStatus,
           isConnected: action.payload.isConnected,
           mode: action.payload.mode,
-          // Limpa o QR Code se já estiver conectado
+          // Se conectou, limpamos o QR Code da tela
           qrCode: action.payload.isConnected ? null : state.whatsappStatus.qrCode
         }
       };
@@ -48,49 +48,55 @@ function appReducer(state, action) {
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // 1. Persistência de Sessão (User + Token)
+  // 1. Restaurar Sessão ao Carregar a Página
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
     
-    if (token && userStr) {
+    if (userStr && token) {
       try {
         dispatch({ type: 'SET_USER', payload: JSON.parse(userStr) });
       } catch (e) {
-        console.error("Erro ao restaurar sessão:", e);
+        localStorage.clear();
       }
     }
   }, []);
 
-  // 2. Conexão Socket.io (Monitoramento do WhatsApp)
+  // 2. Conexão Socket.io com Isolamento por Tenant
   useEffect(() => {
-    // Só conecta o socket se houver um usuário (tenant) logado
+    // Só tentamos conectar o socket se o usuário estiver logado e tiver um ID
     if (!state.user?.id) return;
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+    
+    // A MÁGICA: Passamos o tenantId na query para o backend isolar a conexão
     const socket = io(API_URL, {
+      query: { tenantId: state.user.id },
       transports: ['websocket']
     });
 
     socket.on('connect', () => {
-      // Join na sala do tenant para receber apenas os seus eventos
-      socket.emit('join_session', state.user.id);
+      console.log(`📡 Conectado ao servidor. Sala: ${state.user.id}`);
     });
 
-    // Ouve o QR Code gerado pelo backend
+    // Ouve o QR Code (Direcionado apenas para este tenantId no backend)
     socket.on('whatsapp_qr', (data) => {
       dispatch({ type: 'SET_QR_CODE', payload: data.image });
     });
 
-    // Ouve mudanças de status (ready, authenticated, etc)
+    // Ouve o Status do WhatsApp (ready, connected, etc)
     socket.on('whatsapp_status', (data) => {
       const isConnected = data.status === 'connected' || data.status === 'ready';
       dispatch({ 
         type: 'SET_WHATSAPP_STATUS', 
-        payload: { isConnected, mode: data.status } 
+        payload: { 
+          isConnected, 
+          mode: isConnected ? 'Conectado' : data.status 
+        } 
       });
     });
 
+    // Cleanup: Desconecta o socket ao fazer logout ou fechar a aba
     return () => socket.disconnect();
   }, [state.user?.id]);
 

@@ -2,13 +2,31 @@ import Order from '../models/Order.js';
 import { PaymentFactory } from '../services/payments/PaymentFactory.js';
 
 class OrderController {
+  /**
+   * Lista apenas os pedidos do restaurante logado (Tenant Isolation)
+   */
+  async getOrders(req, res) {
+    try {
+      // O req.tenantId vem do middleware protect
+      const orders = await Order.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+  }
+
+  /**
+   * Cria um novo pedido vinculado ao tenantId do usuário logado
+   */
   async createOrder(req, res) {
-    const { tenantId, clientId, items, total, method, address } = req.body;
+    // Agora o tenantId vem do Token decodificado, não precisa vir no body
+    const { clientId, items, total, method, address } = req.body;
+    const tenantId = req.tenantId; 
     
     try {
-      // 1. Persistência inicial no MongoDB
+      // 1. Persistência vinculada ao ID do usuário atual
       const newOrder = await Order.create({
-        tenantId,
+        tenantId, // ID do restaurante logado
         clientId,
         items,
         total,
@@ -20,7 +38,7 @@ class OrderController {
       const processor = PaymentFactory.create(method);
       const paymentResult = await processor.process(total, newOrder._id);
 
-      // 3. Atualiza o pedido com o ID da transação (TXID do PIX ou ID do PagBank)
+      // 3. Atualiza o pedido com os dados de pagamento
       newOrder.payment.transactionId = paymentResult.transactionId || paymentResult.qrCode;
       await newOrder.save();
 

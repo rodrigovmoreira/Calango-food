@@ -1,64 +1,76 @@
-import { Box, VStack, Icon, Link, Flex, Text } from '@chakra-ui/react';
-import { LayoutDashboard, Settings, LogOut, Utensils } from 'lucide-react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Box, VStack, Icon, Flex, Text, Button } from '@chakra-ui/react';
+import { Settings, LogOut, Utensils } from 'lucide-react';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
-const NavItem = ({ icon, children, to }) => {
+const NavItem = ({ icon, children, to, onClick }) => {
   const location = useLocation();
   const active = location.pathname === to;
 
   return (
-    <Link
-      as={RouterLink}
+    <Flex
+      as={onClick ? 'button' : RouterLink}
       to={to}
-      style={{ textDecoration: 'none' }}
-      _focus={{ boxShadow: 'none' }}
-      w="full"
+      onClick={onClick}
+      align="center"
+      p="4"
+      mx="4"
+      borderRadius="lg"
+      cursor="pointer"
+      w="85%" // Ajuste para não colar na borda
+      bg={active ? 'brand.500' : 'transparent'}
+      color={active ? 'white' : 'gray.600'}
+      _hover={{
+        bg: 'brand.400',
+        color: 'white',
+      }}
+      transition="0.2s"
     >
-      <Flex
-        align="center"
-        p="4"
-        mx="4"
-        borderRadius="lg"
-        role="group"
-        cursor="pointer"
-        bg={active ? 'brand.500' : 'transparent'}
-        color={active ? 'white' : 'inherit'}
-        _hover={{
-          bg: 'brand.400',
-          color: 'white',
-        }}
-      >
-        <Icon mr="4" fontSize="16" as={icon} />
-        {children}
-      </Flex>
-    </Link>
+      <Icon mr="4" fontSize="18" as={icon} />
+      <Text fontWeight="medium">{children}</Text>
+    </Flex>
   );
 };
 
 export default function Sidebar({ children }) {
+  const { dispatch } = useApp();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // 1. Limpa o mini-banco do navegador
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // 2. Avisa o Gerente (AppContext) para resetar tudo
+    dispatch({ type: 'LOGOUT' });
+
+    // 3. Manda para a Landing Page
+    navigate('/');
+  };
+
   return (
     <Box minH="100vh">
       <Box
-        transition="3s ease"
         bg="white"
         borderRightWidth="1px"
-        borderRightStyle="solid"
         borderRightColor="gray.200"
         w={{ base: 'full', md: 60 }}
         pos="fixed"
         h="full"
       >
-        <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
+        <Flex h="20" alignItems="center" mx="8" mb={4}>
           <Text fontSize="2xl" fontWeight="bold" color="brand.500">
-            Calango-food
+            Calango-Food
           </Text>
         </Flex>
-        <VStack spacing={1}>
+        
+        <VStack align="stretch">
           <NavItem icon={Utensils} to="/kitchen">Cozinha</NavItem>
           <NavItem icon={Settings} to="/settings">WhatsApp</NavItem>
-          <NavItem icon={LogOut} to="/">Sair</NavItem>
+          <NavItem icon={LogOut} onClick={handleLogout}>Sair</NavItem>
         </VStack>
       </Box>
+      
       <Box ml={{ base: 0, md: 60 }} p="4">
         {children}
       </Box>

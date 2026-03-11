@@ -28,8 +28,8 @@ const Login = () => {
     }
 
     try {
-      const response = type === 'login' 
-        ? await authAPI.login({ email: data.email, password: data.password }) 
+      const response = type === 'login'
+        ? await authAPI.login({ email: data.email, password: data.password })
         : await authAPI.register({ name: data.name, email: data.email, password: data.password });
 
       const { token, user } = response.data;
@@ -40,10 +40,10 @@ const Login = () => {
       toaster.create({ title: `Bem-vindo, ${user.name}!`, type: "success" });
       navigate('/kitchen');
     } catch (err) {
-      toaster.create({ 
-        title: "Erro na autenticação", 
-        description: err.response?.data?.message || "Verifique seus dados", 
-        type: "error" 
+      toaster.create({
+        title: "Erro na autenticação",
+        description: err.response?.data?.message || "Verifique seus dados",
+        type: "error"
       });
     } finally { setLoading(false); }
   };
@@ -54,7 +54,7 @@ const Login = () => {
       <Flex flex={1} bgGradient="linear(to-br, brand.500, brand.700)" justify="center" align="center" direction="column" p={8} color="white">
         <VStack gap={6}>
           <Box bg="whiteAlpha.200" p={8} borderRadius="full" backdropFilter="blur(10px)">
-             <Icon as={FaUtensils} boxSize="100px" />
+            <Icon as={FaUtensils} boxSize="100px" />
           </Box>
           <Heading size="3xl" fontWeight="bold">Calango-food</Heading>
           <Text fontSize="xl" opacity={0.9}>Sua Cozinha Digital Automatizada</Text>
@@ -75,10 +75,10 @@ const Login = () => {
                   <form onSubmit={(e) => handleAuth(e, 'login')}>
                     <VStack gap={4} align="stretch">
                       <Heading size="md" textAlign="center" mb={2} color="gray.700">Bem-vindo de volta</Heading>
-                      <Field label={<Text color="gray.700">E-mail</Text>}>
+                      <Field label="E-mail">
                         <Input name="email" type="email" placeholder="seu@email.com" color="gray.800" borderColor="gray.300" />
                       </Field>
-                      <Field label={<Text color="gray.700">Senha</Text>}>
+                      <Field label="Senha">
                         <Input name="password" type={showPassword ? "text" : "password"} placeholder="Sua senha" color="gray.800" borderColor="gray.300" />
                       </Field>
                       <Button type="submit" colorPalette="brand" size="lg" loading={loading}>Entrar</Button>
@@ -93,10 +93,10 @@ const Login = () => {
                       <Field label={<Text color="gray.700">Nome</Text>}>
                         <Input name="name" placeholder="Seu nome" color="gray.800" borderColor="gray.300" />
                       </Field>
-                      <Field label={<Text color="gray.700">E-mail</Text>}>
+                      <Field label="E-mail">
                         <Input name="email" type="email" placeholder="seu@email.com" color="gray.800" borderColor="gray.300" />
                       </Field>
-                      <Field label={<Text color="gray.700">Senha</Text>}>
+                      <Field label="Senha">
                         <Input name="password" type="password" placeholder="Mínimo 6 caracteres" color="gray.800" borderColor="gray.300" />
                       </Field>
                       <Field label={<Text color="gray.700">Confirmar Senha</Text>}>

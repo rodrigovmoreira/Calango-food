@@ -41,14 +41,14 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Busca usuário e inclui o campo password (que está como select: false)
+    // 1. Busca o usuário forçando a vinda do password
     const user = await SystemUser.findOne({ email }).select('+password');
 
-    if (!user || !(await user.correctPassword(password))) {
+    // 2. Verificamos se o usuário existe e passamos a senha explicitamente
+    if (!user || !(await user.correctPassword(password, user.password))) {
       return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
     }
 
-    // 2. Gera o Token
     const token = signToken(user._id);
     res.status(200).json({
       status: 'success',

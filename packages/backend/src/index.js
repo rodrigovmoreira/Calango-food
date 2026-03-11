@@ -11,11 +11,12 @@ import deliveryController from './controllers/DeliveryController.js';
 import orderController from './controllers/OrderController.js';
 import webhookController from './controllers/WebhookController.js';
 import authRoutes from './routes/authRoutes.js';
+import { protect } from './middlewares/authMiddleware.js';
 
 // 1. Configurações de Caminho e Ambiente (Sempre primeiro)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); 
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 // 2. Instanciação do App Express
 const app = express();
@@ -33,6 +34,20 @@ app.use('/api/auth', authRoutes);
 // Inicializa o motor de WhatsApp passando o Socket.io
 WppService.initialize(io);
 
+io.on('connection', (socket) => {
+  // O frontend deve enviar o tenantId na conexão
+  const tenantId = socket.handshake.query.tenantId;
+
+  if (tenantId) {
+    socket.join(tenantId); // O usuário entra em uma sala exclusiva com o seu ID
+    console.log(`📡 Usuário ${tenantId} conectado ao socket e isolado na sala.`);
+  }
+
+  socket.on('disconnect', () => {
+    console.log('🔌 Usuário desconectado do socket.');
+  });
+});
+
 // 4. Conexão com Banco de Dados
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('🐊 Calango-food: MongoDB Conectado'))
@@ -46,8 +61,13 @@ app.get('/', (req, res) => {
 // Rotas de Logística do Calango-food
 app.get('/api/drivers', deliveryController.listDrivers);
 app.post('/api/dispatch', deliveryController.dispatchOrder);
-app.post('/api/orders', orderController.createOrder);
+app.get('/api/orders', protect, orderController.getOrders);
 app.post('/api/webhooks/payments', webhookController.handlePayment);
+// Rota para o usuário conectar o WhatsApp dele
+app.post('/api/whatsapp/connect', protect, async (req, res) => {
+  WppService.startSession(req.tenantId);
+  res.json({ message: "Iniciando conexão..." });
+});
 
 // 6. Inicialização do Servidor
 httpServer.listen(PORT, () => {
