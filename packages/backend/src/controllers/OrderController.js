@@ -1,45 +1,48 @@
+// packages/backend/src/controllers/OrderController.js
 import Order from '../models/Order.js';
 import { PaymentFactory } from '../services/payments/PaymentFactory.js';
 
 class OrderController {
-  /**
-   * Lista apenas os pedidos do restaurante logado (Tenant Isolation)
-   */
-  async getOrders(req, res) {
-    try {
-      // O req.tenantId vem do middleware protect
-      const orders = await Order.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
-      res.json(orders);
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
-    }
-  }
-
-  /**
-   * Cria um novo pedido vinculado ao tenantId do usuário logado
-   */
   async createOrder(req, res) {
-    // Agora o tenantId vem do Token decodificado, não precisa vir no body
     const { clientId, items, total, method, address } = req.body;
-    const tenantId = req.tenantId; 
-    
+    const tenantId = req.tenantId; // Injetado pelo middleware protect
+
+    let newOrder;
+
     try {
-      // 1. Persistência vinculada ao ID do usuário atual
-      const newOrder = await Order.create({
-        tenantId, // ID do restaurante logado
+      // 1. Cria o registro do pedido com status inicial 'pending'
+      newOrder = await Order.create({
+        tenantId,
         clientId,
         items,
         total,
-        payment: { method },
+        payment: { method, status: 'pending' },
         delivery: { address }
       });
 
-      // 2. Uso do Design Pattern Factory para processar pagamento
+      // 2. Instancia o gateway configurado para o restaurante
       const processor = PaymentFactory.create(method);
+      
+      // 3. Tenta processar o pagamento
       const paymentResult = await processor.process(total, newOrder._id);
 
-      // 3. Atualiza o pedido com os dados de pagamento
-      newOrder.payment.transactionId = paymentResult.transactionId || paymentResult.qrCode;
+      if (!paymentResult.success) {
+        // TRATAMENTO DE EXCEÇÃO: Se o gateway retornar erro (cartão recusado, etc)
+        newOrder.payment.status = 'failed';
+        newOrder.payment.failureMessage = paymentResult.error || 'Transação recusada pelo emissor.';
+        await newOrder.save();
+        
+        return res.status(402).json({ 
+          status: 'fail', 
+          message: 'Pagamento não autorizado.', 
+          error: newOrder.payment.failureMessage 
+        });
+      }
+
+      // 4. Sucesso no processamento inicial (aguardando confirmação do webhook)
+      newOrder.payment.transactionId = paymentResult.transactionId;
+      newOrder.payment.gatewayProvider = paymentResult.gateway;
+      newOrder.history.push({ status: 'pending' });
       await newOrder.save();
 
       res.status(201).json({
@@ -48,7 +51,13 @@ class OrderController {
       });
 
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      // Erro inesperado (banco de dados ou falha de rede)
+      if (newOrder) {
+        newOrder.payment.status = 'failed';
+        newOrder.payment.failureMessage = 'Erro interno ao processar pedido.';
+        await newOrder.save();
+      }
+      res.status(500).json({ error: "Falha crítica no checkout. Tente novamente." });
     }
   }
 }

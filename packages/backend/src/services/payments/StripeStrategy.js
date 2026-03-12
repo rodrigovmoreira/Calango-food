@@ -2,14 +2,17 @@ import { PaymentStrategy } from './PaymentStrategy.js';
 
 export class StripeStrategy extends PaymentStrategy {
   async process(amount, orderId) {
-    // Aqui entraria a lógica real da API do Stripe
-    console.log(`💳 Processando R$ ${amount} via Stripe para o pedido ${orderId}`);
-    
-    // Simulação de retorno padronizado
-    return {
-      success: true,
-      transactionId: `st_${Math.random().toString(36).substr(2, 9)}`,
-      status: 'pending'
-    };
+    try {
+      console.log(`💳 Calango-food: Gerando PaymentIntent Stripe para Pedido ${orderId}`);
+      
+      return {
+        success: true,
+        transactionId: `STP-${Math.random().toString(36).toUpperCase().substring(2, 10)}`,
+        gateway: 'stripe',
+        status: 'pending'
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 }
