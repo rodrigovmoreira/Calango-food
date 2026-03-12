@@ -3,6 +3,17 @@ import Order from '../models/Order.js';
 import { PaymentFactory } from '../services/payments/PaymentFactory.js';
 
 class OrderController {
+
+  async getOrders(req, res) {
+    try {
+      // O req.tenantId vem do middleware protect
+      const orders = await Order.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+  }
+  
   async createOrder(req, res) {
     const { clientId, items, total, method, address } = req.body;
     const tenantId = req.tenantId; // Injetado pelo middleware protect
@@ -22,7 +33,7 @@ class OrderController {
 
       // 2. Instancia o gateway configurado para o restaurante
       const processor = PaymentFactory.create(method);
-      
+
       // 3. Tenta processar o pagamento
       const paymentResult = await processor.process(total, newOrder._id);
 
@@ -31,11 +42,11 @@ class OrderController {
         newOrder.payment.status = 'failed';
         newOrder.payment.failureMessage = paymentResult.error || 'Transação recusada pelo emissor.';
         await newOrder.save();
-        
-        return res.status(402).json({ 
-          status: 'fail', 
-          message: 'Pagamento não autorizado.', 
-          error: newOrder.payment.failureMessage 
+
+        return res.status(402).json({
+          status: 'fail',
+          message: 'Pagamento não autorizado.',
+          error: newOrder.payment.failureMessage
         });
       }
 
