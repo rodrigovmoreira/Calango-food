@@ -8,6 +8,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
+import Products from './pages/Products';
 import Menu from './pages/Menu';
 
 // Lógica de Proteção
@@ -44,6 +45,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/kitchen" element={
               <ProtectedRoute>
                 <Kitchen />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
               </ProtectedRoute>
             } />
 

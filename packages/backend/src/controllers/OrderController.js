@@ -25,6 +25,16 @@ class OrderController {
       return res.status(400).json({ error: 'tenantId é obrigatório' });
     }
 
+    // NOVA VALIDAÇÃO: Bloqueia se a loja estiver fechada administrativamente
+    try {
+      const user = await import('../models/SystemUser.js').then(m => m.default).then(SystemUser => SystemUser.findById(finalTenantId));
+      if (user && !user.isOpen) {
+         return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+      }
+    } catch (err) {
+      console.error("Erro ao checar status da loja", err);
+    }
+
     let newOrder;
     let calculatedTotal = 0;
     const validatedItems = [];

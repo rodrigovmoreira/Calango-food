@@ -66,7 +66,8 @@ export default function Sidebar({ children }) {
         
         <VStack align="stretch">
           <NavItem icon={Utensils} to="/kitchen">Cozinha</NavItem>
-          <NavItem icon={Settings} to="/settings">WhatsApp</NavItem>
+          <NavItem icon={Settings} to="/products">Cardápio (Pratos)</NavItem>
+          <NavItem icon={Settings} to="/settings">Configurações</NavItem>
           <NavItem icon={LogOut} onClick={handleLogout}>Sair</NavItem>
         </VStack>
       </Box>

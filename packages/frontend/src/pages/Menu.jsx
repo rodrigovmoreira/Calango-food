@@ -11,6 +11,7 @@ import { foodAPI } from '../services/api';
 
 export default function Menu() {
   const { tenantId } = useParams();
+  const [storeProfile, setStoreProfile] = useState({ storeName: 'Carregando...', isOperatingNow: true });
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,21 +25,28 @@ export default function Menu() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchMenuAndStore = async () => {
       try {
-         const { data } = await foodAPI.getPublicProducts(tenantId);
-         setProducts(data);
+         const [storeRes, menuRes] = await Promise.all([
+            foodAPI.getPublicProfile(tenantId),
+            foodAPI.getPublicProducts(tenantId)
+         ]);
+         setStoreProfile(storeRes.data);
+         setProducts(menuRes.data);
       } catch (err) {
          console.error('Failed to load menu:', err);
-         toaster.create({ title: "Erro", description: "Falha ao carregar o cardápio.", type: "error" });
+         toaster.create({ title: "Erro", description: "Loja não encontrada ou falha no cardápio.", type: "error" });
       } finally {
          setLoading(false);
       }
     };
-    if (tenantId) fetchMenu();
+    if (tenantId) fetchMenuAndStore();
   }, [tenantId]);
 
   const addToCart = (product) => {
+    if (!storeProfile.isOperatingNow) {
+       return toaster.create({ title: "Loja Fechada", description: "Não estamos recebendo pedidos no momento.", type: "warning" });
+    }
     setCart(prev => {
       const existing = prev.find(item => item.productId === product._id);
       if (existing) {

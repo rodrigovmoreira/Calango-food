@@ -68,7 +68,14 @@ app.post('/api/orders', orderController.createOrder);
 // Rotas de Produtos
 import productController from './controllers/ProductController.js';
 app.get('/api/products/public/:tenantId', productController.getPublicProducts);
+app.get('/api/products', protect, productController.getProducts);
 app.post('/api/products', protect, productController.createProduct);
+app.put('/api/products/:id', protect, productController.updateProduct);
+app.delete('/api/products/:id', protect, productController.deleteProduct);
+// Rotas de Loja / Tenant (Público)
+import * as authController from './controllers/authController.js';
+app.get('/api/store/public/:tenantId', authController.getPublicProfile);
+
 app.post('/api/webhooks/payments', webhookController.handlePayment);
 // Rota para o usuário conectar o WhatsApp dele
 app.post('/api/whatsapp/connect', protect, async (req, res) => {
