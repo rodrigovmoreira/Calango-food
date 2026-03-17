@@ -62,6 +62,13 @@ app.get('/', (req, res) => {
 app.get('/api/drivers', deliveryController.listDrivers);
 app.post('/api/dispatch', deliveryController.dispatchOrder);
 app.get('/api/orders', protect, orderController.getOrders);
+// Nova rota pública para criar pedido a partir do cardápio
+app.post('/api/orders', orderController.createOrder);
+
+// Rotas de Produtos
+import productController from './controllers/ProductController.js';
+app.get('/api/products/public/:tenantId', productController.getPublicProducts);
+app.post('/api/products', protect, productController.createProduct);
 app.post('/api/webhooks/payments', webhookController.handlePayment);
 // Rota para o usuário conectar o WhatsApp dele
 app.post('/api/whatsapp/connect', protect, async (req, res) => {

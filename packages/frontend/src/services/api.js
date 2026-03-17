@@ -47,8 +47,11 @@ export const foodAPI = {
   dispatchOrder: (data) => api.post('/api/dispatch', data), // Integração com Logística
 
   // 2. Cardápio Digital (Produtos)
+  getPublicProducts: (tenantId) => api.get(`/api/products/public/${tenantId}`),
   getProducts: () => api.get('/api/products'),
   createProduct: (data) => api.post('/api/products', data),
+  
+  createOrder: (data) => api.post('/api/orders', data),
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/api/products/${id}`),
 

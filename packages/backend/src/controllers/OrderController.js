@@ -14,10 +14,16 @@ class OrderController {
       res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
     }
   }
-  
   async createOrder(req, res) {
-    const { clientId, items, method, address } = req.body;
-    const tenantId = req.tenantId; 
+    // Para rota pública, tenantId vem do body
+    const { clientId, items, method, address, tenantId } = req.body;
+    
+    // Fallback caso a rota permaneça protegida para algum admin
+    const finalTenantId = tenantId || req.tenantId;
+
+    if (!finalTenantId) {
+      return res.status(400).json({ error: 'tenantId é obrigatório' });
+    }
 
     let newOrder;
     let calculatedTotal = 0;
@@ -26,7 +32,7 @@ class OrderController {
     try {
       // 1. VALIDAÇÃO E CÁLCULO (Anti-Fraude): Não confiamos no 'total' vindo do front
       for (const item of items) {
-        const product = await Product.findOne({ _id: item.productId, tenantId });
+        const product = await Product.findOne({ _id: item.productId, tenantId: finalTenantId });
         
         if (!product) {
           throw new Error(`Produto ${item.name} não disponível.`);
@@ -55,7 +61,7 @@ class OrderController {
 
       // 2. Criação do Registro Inicial
       newOrder = await Order.create({
-        tenantId,
+        tenantId: finalTenantId,
         clientId,
         items: validatedItems,
         total: calculatedTotal,
@@ -87,6 +93,19 @@ class OrderController {
       newOrder.payment.gatewayProvider = paymentResult.gateway; // PagBank ou Stripe
       newOrder.history.push({ status: 'pending' });
       await newOrder.save();
+
+      // Dispara mensagem WhatsApp de confirmação de recebimento do pedido
+      try {
+        import('../services/notifications/WppService.js').then(({ default: WppService }) => {
+           WppService.sendMessage(
+             finalTenantId, 
+             clientId, // Aqui assumimos que clientId é o WhatsApp do cliente salvo sem formatação extra (apenas número)
+             `✅ *Calango Delivery*\n\nSeu pedido foi recebido com sucesso!\n\n*Total:* R$ ${calculatedTotal.toFixed(2)}\n*Entrega:* ${address}\n\nAcompanhe seu pedido quando quiser.`
+           );
+        });
+      } catch (wppError) {
+        console.error("Erro ao enviar WPP inicial:", wppError);
+      }
 
       res.status(201).json({
         orderId: newOrder._id,
