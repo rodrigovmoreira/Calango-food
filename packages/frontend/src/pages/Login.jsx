@@ -49,14 +49,14 @@ const Login = () => {
   };
 
   return (
-    <Flex minH="100vh" direction={{ base: 'column', md: 'row' }}>
+    <Flex flex={1} minH="100vh" direction={{ base: 'column', md: 'row' }}>
       <Toaster />
-      <Flex flex={1} bgGradient="linear(to-br, brand.500, brand.700)" justify="center" align="center" direction="column" p={8} color="white">
+      <Flex flex={1} bgGradient="to-br" gradientFrom="brand.700" gradientTo="brand.neon" justify="center" align="center" direction="column" p={8} color="white">
         <VStack gap={6}>
-          <Box bg="whiteAlpha.200" p={8} borderRadius="full" backdropFilter="blur(10px)">
+          <Box bg="rgba(255, 255, 255, 0.2)" p={8} borderRadius="full" backdropFilter="blur(10px)" boxShadow="xl">
             <Icon as={FaUtensils} boxSize="100px" />
           </Box>
-          <Heading size="3xl" fontWeight="bold">Calango-food</Heading>
+          <Heading size="3xl" fontWeight="bold" letterSpacing="tight">Calango Food</Heading>
           <Text fontSize="xl" opacity={0.9}>Sua Cozinha Digital Automatizada</Text>
         </VStack>
       </Flex>

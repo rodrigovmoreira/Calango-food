@@ -31,11 +31,11 @@ const config = defineConfig({
     },
     semanticTokens: {
       shadows: {
-        sm: { value: '0 1px 2px 0 rgba(167, 139, 250, 0.5)' },
+        sm:   { value: '0 1px 2px 0 rgba(167, 139, 250, 0.5)' },
         base: { value: '0 1px 3px 0 rgba(167, 139, 250, 0.6), 0 1px 2px 0 rgba(167, 139, 250, 0.3)' },
-        md: { value: '0 4px 6px -1px rgba(167, 139, 250, 0.6), 0 2px 4px -1px rgba(167, 139, 250, 0.3)' },
-        lg: { value: '0 10px 15px -3px rgba(167, 139, 250, 0.6), 0 4px 6px -2px rgba(167, 139, 250, 0.3)' },
-        xl: { value: '0 20px 25px -5px rgba(167, 139, 250, 0.6), 0 10px 10px -5px rgba(167, 139, 250, 0.3)' },
+        md:   { value: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' },
+        lg:   { value: '0 10px 15px -3px rgba(167, 139, 250, 0.6), 0 4px 6px -2px rgba(167, 139, 250, 0.3)' },
+        xl:   { value: '0 20px 25px -5px rgba(167, 139, 250, 0.6), 0 10px 10px -5px rgba(167, 139, 250, 0.3)' },
       }
     },
     recipes: {
@@ -53,7 +53,7 @@ const config = defineConfig({
                 }
               },
               _active: {
-                bg: 'brand.700',
+                bg: 'brand.700 50%',
               }
             }
           }
