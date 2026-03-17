@@ -59,3 +59,85 @@ export const login = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await SystemUser.findById(req.tenantId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    res.json({
+      id: user._id, name: user.name, email: user.email,
+      storeName: user.storeName, isOpen: user.isOpen, operatingHours: user.operatingHours
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { storeName, isOpen, operatingHours } = req.body;
+    const user = await SystemUser.findByIdAndUpdate(
+      req.tenantId,
+      { storeName, isOpen, operatingHours },
+      { new: true, runValidators: true }
+    );
+    
+    res.json({
+      id: user._id, name: user.name, email: user.email,
+      storeName: user.storeName, isOpen: user.isOpen, operatingHours: user.operatingHours
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getPublicProfile = async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const user = await SystemUser.findById(tenantId);
+    if (!user) return res.status(404).json({ message: 'Store not found' });
+    
+    // Calcula se está aberto agora baseado nos horários e no manual isOpen
+    let currentlyOpen = false;
+    
+    if (user.isOpen) {
+      if (user.operatingHours && user.operatingHours.length > 0) {
+         const now = new Date();
+         // Ajuste de Timezone se necessário (simplificado para servidor local)
+         const dayOfWeek = now.getDay();
+         const todaySchedule = user.operatingHours.find(h => h.day === dayOfWeek);
+         
+         if (todaySchedule && todaySchedule.isActive) {
+            const currentHourMinutes = now.getHours() * 60 + now.getMinutes();
+            const [openH, openM] = todaySchedule.openTime.split(':').map(Number);
+            const [closeH, closeM] = todaySchedule.closeTime.split(':').map(Number);
+            const openMinutes = openH * 60 + openM;
+            let closeMinutes = closeH * 60 + closeM;
+            
+            // Lida com fechamento no dia seguinte (ex: 18:00 as 02:00)
+            if (closeMinutes < openMinutes) {
+               closeMinutes += 24 * 60;
+            }
+            let checkMinutes = currentHourMinutes;
+            if (openMinutes > closeMinutes && checkMinutes < closeMinutes) { 
+                checkMinutes += 24 * 60;
+            }
+            
+            if (checkMinutes >= openMinutes && checkMinutes <= closeMinutes) {
+               currentlyOpen = true;
+            }
+         }
+      } else {
+         currentlyOpen = true;
+      }
+    }
+
+    res.json({
+      storeName: user.storeName || 'Calango Food',
+      isOperatingNow: currentlyOpen
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

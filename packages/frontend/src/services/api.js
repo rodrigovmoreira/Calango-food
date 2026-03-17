@@ -37,18 +37,25 @@ export const authAPI = {
   register: (data) => api.post('/api/auth/register', data),
   logout: () => api.post('/api/auth/logout'),
   getProfile: () => api.get('/api/auth/profile'),
+  updateProfile: (data) => api.put('/api/auth/profile', data),
 };
 
 // --- Rotas de Negócio (Calango-food) ---
 export const foodAPI = {
+  // 0. Estabelecimento (Público)
+  getPublicProfile: (tenantId) => api.get(`/api/store/public/${tenantId}`),
+
   // 1. Cozinha e Pedidos
   getOrders: (status) => api.get('/api/orders', { params: { status } }),
   updateOrderStatus: (id, status) => api.patch(`/api/orders/${id}/status`, { status }),
   dispatchOrder: (data) => api.post('/api/dispatch', data), // Integração com Logística
 
   // 2. Cardápio Digital (Produtos)
+  getPublicProducts: (tenantId) => api.get(`/api/products/public/${tenantId}`),
   getProducts: () => api.get('/api/products'),
   createProduct: (data) => api.post('/api/products', data),
+  
+  createOrder: (data) => api.post('/api/orders', data),
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/api/products/${id}`),
 

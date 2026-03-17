@@ -8,6 +8,8 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
+import Products from './pages/Products';
+import Menu from './pages/Menu';
 
 // Lógica de Proteção
 const ProtectedRoute = ({ children }) => {
@@ -46,11 +48,20 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               </ProtectedRoute>
             } />
 
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            } />
+
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
               </ProtectedRoute>
             } />
+
+            {/* Rota Pública do Cardápio Digital */}
+            <Route path="/menu/:tenantId" element={<Menu />} />
 
             {/* Fallback para rotas não encontradas */}
             <Route path="*" element={<Navigate to="/" replace />} />
