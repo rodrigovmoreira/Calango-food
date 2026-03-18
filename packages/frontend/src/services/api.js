@@ -22,7 +22,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenantId');
-      
+
       if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
         window.location.href = '/login';
       }
@@ -50,11 +50,17 @@ export const foodAPI = {
   updateOrderStatus: (id, status) => api.patch(`/api/orders/${id}/status`, { status }),
   dispatchOrder: (data) => api.post('/api/dispatch', data), // Integração com Logística
 
+  // 1.5. Entregadores (Logística)
+  getDrivers: () => api.get('/api/drivers'),
+  createDriver: (data) => api.post('/api/drivers', data),
+  updateDriver: (id, data) => api.put(`/api/drivers/${id}`, data),
+  deleteDriver: (id) => api.delete(`/api/drivers/${id}`),
+
   // 2. Cardápio Digital (Produtos)
   getPublicProducts: (tenantId) => api.get(`/api/products/public/${tenantId}`),
   getProducts: () => api.get('/api/products'),
   createProduct: (data) => api.post('/api/products', data),
-  
+
   createOrder: (data) => api.post('/api/orders', data),
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/api/products/${id}`),

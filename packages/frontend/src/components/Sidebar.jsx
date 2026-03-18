@@ -1,5 +1,5 @@
 import { Box, VStack, Icon, Flex, Text, Button } from '@chakra-ui/react';
-import { Settings, LogOut, Utensils } from 'lucide-react';
+import { Settings, LogOut, Utensils, Bike } from 'lucide-react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -40,7 +40,7 @@ export default function Sidebar({ children }) {
     // 1. Limpa o mini-banco do navegador
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    
+
     // 2. Avisa o Gerente (AppContext) para resetar tudo
     dispatch({ type: 'LOGOUT' });
 
@@ -63,15 +63,16 @@ export default function Sidebar({ children }) {
             Calango-Food
           </Text>
         </Flex>
-        
+
         <VStack align="stretch">
           <NavItem icon={Utensils} to="/kitchen">Cozinha</NavItem>
+          <NavItem icon={Bike} to="/entregadores">Entregadores</NavItem>
           <NavItem icon={Settings} to="/products">Cardápio (Pratos)</NavItem>
           <NavItem icon={Settings} to="/settings">Configurações</NavItem>
           <NavItem icon={LogOut} onClick={handleLogout}>Sair</NavItem>
         </VStack>
       </Box>
-      
+
       <Box ml={{ base: 0, md: 60 }} p="4">
         {children}
       </Box>

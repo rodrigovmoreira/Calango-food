@@ -5,14 +5,14 @@ import Order from '../models/Order.js';
 import WppService from '../services/notifications/WppService.js';
 
 class DeliveryController {
-  // Lista motoboys do restaurante logado
+  // Lista entregadores do restaurante logado
   async listDrivers(req, res) {
     try {
       const tenantId = req.tenantId || req.query.tenantId; // Protegido
       const drivers = await DeliveryDriver.find({ tenantId, isActive: true }).sort({ priority: -1 });
       res.json(drivers);
     } catch (error) {
-      res.status(500).json({ error: "Erro ao listar motoboys" });
+      res.status(500).json({ error: "Erro ao listar entregadores" });
     }
   }
 
@@ -28,14 +28,14 @@ class DeliveryController {
         return res.status(404).json({ message: "Pedido não encontrado." });
       }
 
-      // 2. Busca o próximo motoboy disponível por prioridade
-      const driver = await DeliveryDriver.findOne({ 
-        tenantId, 
-        status: 'disponivel' 
+      // 2. Busca o próximo entregador disponível por prioridade
+      const driver = await DeliveryDriver.findOne({
+        tenantId,
+        status: 'disponivel'
       }).sort({ priority: -1 });
 
       if (!driver) {
-        return res.status(404).json({ message: "Nenhum motoboy disponível no momento." });
+        return res.status(404).json({ message: "Nenhum entregador disponível no momento." });
       }
 
       // 3. Usa o Adapter para gerar os links (Determinístico)
@@ -43,7 +43,7 @@ class DeliveryController {
       const linkCliente = WazeAdapter.generateRouteLink(address);
       const messageTemplate = `📦 *Nova Entrega!*\n\n📍 *Retirada:* ${linkLoja}\n🏁 *Entrega:* ${linkCliente}`;
 
-      // 4. Dispara WhatsApp para o Motoboy
+      // 4. Dispara WhatsApp para o Entregador
       await WppService.sendMessage(tenantId, driver.whatsapp, messageTemplate);
 
       // 5. Atualiza o status do pedido para "saiu para entrega"
@@ -52,7 +52,7 @@ class DeliveryController {
       await order.save();
 
       // 6. Avisar o cliente
-      await WppService.sendMessage(tenantId, order.clientId, `🛵 *Calango Delivery*\n\nOba! Seu pedido saiu para entrega.\nO motoboy *${driver.name}* já está a caminho!`);
+      await WppService.sendMessage(tenantId, order.clientId, `🛵 *Calango Delivery*\n\nOba! Seu pedido saiu para entrega.\nO entregador *${driver.name}* já está a caminho!`);
 
       // 7. Retorna os dados
       res.json({
@@ -66,12 +66,12 @@ class DeliveryController {
     }
   }
 
-  // Cria um novo motoboy
+  // Cria um novo entregador
   async createDriver(req, res) {
     try {
       const tenantId = req.tenantId;
       const { name, whatsapp, status, priority } = req.body;
-      
+
       if (!name || !whatsapp) {
         return res.status(400).json({ message: "Nome e WhatsApp são obrigatórios." });
       }
@@ -87,17 +87,17 @@ class DeliveryController {
       await driver.save();
       res.status(201).json(driver);
     } catch (error) {
-      console.error("Erro ao criar motoboy:", error);
-      res.status(500).json({ error: "Erro ao criar motoboy" });
+      console.error("Erro ao criar entregador:", error);
+      res.status(500).json({ error: "Erro ao criar entregador" });
     }
   }
 
-  // Atualiza os dados do motoboy (status, priority, etc)
+  // Atualiza os dados do entregador (status, priority, etc)
   async updateDriver(req, res) {
     try {
       const tenantId = req.tenantId;
       const { id } = req.params;
-      
+
       const driver = await DeliveryDriver.findOneAndUpdate(
         { _id: id, tenantId },
         { ...req.body },
@@ -105,17 +105,17 @@ class DeliveryController {
       );
 
       if (!driver) {
-        return res.status(404).json({ message: "Motoboy não encontrado." });
+        return res.status(404).json({ message: "Entregador não encontrado." });
       }
 
       res.json(driver);
     } catch (error) {
-      console.error("Erro ao atualizar motoboy:", error);
-      res.status(500).json({ error: "Erro ao atualizar motoboy" });
+      console.error("Erro ao atualizar entregador:", error);
+      res.status(500).json({ error: "Erro ao atualizar entregador" });
     }
   }
 
-  // Desativa ou deleta logicamente o motoboy
+  // Desativa ou deleta logicamente o entregador
   async deleteDriver(req, res) {
     try {
       const tenantId = req.tenantId;
@@ -128,13 +128,13 @@ class DeliveryController {
       );
 
       if (!driver) {
-        return res.status(404).json({ message: "Motoboy não encontrado." });
+        return res.status(404).json({ message: "Entregador não encontrado." });
       }
 
-      res.json({ message: "Motoboy removido com sucesso.", driver });
+      res.json({ message: "Entregador removido com sucesso.", driver });
     } catch (error) {
-      console.error("Erro ao remover motoboy:", error);
-      res.status(500).json({ error: "Erro ao remover motoboy" });
+      console.error("Erro ao remover entregador:", error);
+      res.status(500).json({ error: "Erro ao remover entregador" });
     }
   }
 }

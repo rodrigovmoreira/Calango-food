@@ -6,8 +6,8 @@ import { Button } from "../components/ui/button";
 import { Card } from "@chakra-ui/react";
 import { Avatar } from "../components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaWhatsapp, FaUtensils, FaMotorcycle, 
+import {
+  FaWhatsapp, FaUtensils, FaMotorcycle,
   FaQrcode, FaCommentDots, FaTimes
 } from 'react-icons/fa';
 import React, { useState } from 'react';
@@ -71,7 +71,7 @@ const LandingPage = () => {
               Transforme seu WhatsApp em uma <Box as="span" color="brand.500">Máquina de Vendas</Box>
             </Heading>
             <Text fontSize="xl" color="gray.600">
-              Cardápio digital, pagamentos via PIX e integração com motoboys. Tudo automático, 24h por dia.
+              Cardápio digital, pagamentos via PIX e integração com entregadores. Tudo automático, 24h por dia.
             </Text>
             <Stack direction={{ base: 'column', sm: 'row' }} gap={4} w="full">
               <Button
@@ -115,14 +115,14 @@ const LandingPage = () => {
                 <ChatMessage isUser>Olá! Quero um Combo Calango com Batata.</ChatMessage>
                 <ChatMessage>
                   <Box as="span" fontWeight="bold" color="brand.600">CalangoBot: </Box>
-                  Excelente escolha! 🍔 O total fica R$ 45,90. 
+                  Excelente escolha! 🍔 O total fica R$ 45,90.
                   Deseja pagar via PIX para agilizar a entrega?
                 </ChatMessage>
                 <ChatMessage isUser>Sim, mande a chave.</ChatMessage>
                 <ChatMessage>
                   <Box as="span" fontWeight="bold" color="green.600">✅ Pedido Confirmado!</Box>
                   <br />
-                  Seu pagamento foi aprovado e o motoboy já foi acionado.
+                  Seu pagamento foi aprovado e o entregador já foi acionado.
                 </ChatMessage>
               </Card.Body>
             </Card.Root>
@@ -151,7 +151,7 @@ const LandingPage = () => {
             <FeatureCard
               icon={FaMotorcycle}
               title="Logística Ativa"
-              text="Integração nativa para chamar o motoboy mais próximo automaticamente."
+              text="Integração nativa para chamar o entregador mais próximo automaticamente."
             />
           </SimpleGrid>
         </Container>
@@ -173,7 +173,7 @@ const LandingPage = () => {
             <VStack align="start" gap={3}>
               <Text fontWeight="bold">Plataforma</Text>
               <Text fontSize="sm" color="gray.400" cursor="pointer">Cozinha Digital</Text>
-              <Text fontSize="sm" color="gray.400" cursor="pointer">Gestão de Motoboys</Text>
+              <Text fontSize="sm" color="gray.400" cursor="pointer">Gestão de Entregadores</Text>
             </VStack>
             <VStack align="start" gap={3}>
               <Text fontWeight="bold">Suporte</Text>

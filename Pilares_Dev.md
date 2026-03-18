@@ -26,8 +26,8 @@ Painel Real-Time: A Kitchen.jsx deve atualizar via Socket.io assim que o Webhook
 Gestão de Status: O botão de "Iniciar Preparo" deve disparar um WhatsApp automático: "Sua pizza entrou no forno!".
 
 ## 4. Pilar da Entrega: A Logística Final
-A comunicação com o motoboy é o que diferencia o Calango Food de um cardápio estático.
+A comunicação com o entregador é o que diferencia o Calango Food de um cardápio estático.
 
-Despacho Automatizado: Ao clicar em "Chamar Motoboy", o sistema envia para o WhatsApp do entregador: Endereço do Cliente + Link do Google Maps + Valor a Receber (se for pagamento na entrega).
+Despacho Automatizado: Ao clicar em "Chamar Entregador", o sistema envia para o WhatsApp do entregador: Endereço do Cliente + Link do Google Maps + Valor a Receber (se for pagamento na entrega).
 
-Aviso ao Cliente: Notificação simultânea no WhatsApp do cliente: "Seu pedido saiu! O motoboy [Nome] já está a caminho".
+Aviso ao Cliente: Notificação simultânea no WhatsApp do cliente: "Seu pedido saiu! O entregador [Nome] já está a caminho".

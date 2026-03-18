@@ -7,5 +7,9 @@ export default defineConfig({
   envDir: '../../', // Aponta para a raiz do monorepo para ler o .env
   server: {
     port: 5173
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true
   }
 });

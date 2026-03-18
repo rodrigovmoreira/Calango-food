@@ -6,8 +6,8 @@ class NotificationService {
    */
   async notifyNewOrderPaid(order) {
     const restaurantMsg = `🔔 *NOVO PEDIDO PAGO!*\n\n💰 Valor: R$ ${order.total.toFixed(2)}\n📍 Endereço: ${order.delivery.address}\n\nO pedido já está disponível no seu painel para preparo.`;
-    
-    const clientMsg = `✅ *Pagamento Confirmado!*\n\nSeu pedido na *Calango-food* já está na cozinha. Avisaremos você assim que o motoboy sair!`;
+
+    const clientMsg = `✅ *Pagamento Confirmado!*\n\nSeu pedido na *Calango-food* já está na cozinha. Avisaremos você assim que o entregador sair!`;
 
     try {
       // Notifica o restaurante (Número vindo do process.env ou do Tenant)

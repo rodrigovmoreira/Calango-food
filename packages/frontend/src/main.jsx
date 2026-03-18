@@ -10,6 +10,7 @@ import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
 import Products from './pages/Products';
 import Menu from './pages/Menu';
+import Entregadores from './pages/Entregadores';
 
 // Lógica de Proteção
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +52,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/products" element={
               <ProtectedRoute>
                 <Products />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/entregadores" element={
+              <ProtectedRoute>
+                <Entregadores />
               </ProtectedRoute>
             } />
 
