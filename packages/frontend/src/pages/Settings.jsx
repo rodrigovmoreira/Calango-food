@@ -10,7 +10,7 @@ import { foodAPI, authAPI } from '../services/api';
 const DAYS_OF_WEEK = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 export default function Settings() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { isConnected, mode, qrCode } = state.whatsappStatus;
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -58,6 +58,11 @@ export default function Settings() {
 
   const handleConnect = async () => {
     try {
+      // Força a interface de loading imediatamente no clique
+      dispatch({ 
+        type: 'SET_WHATSAPP_STATUS', 
+        payload: { mode: 'Iniciando...', isConnected: false } 
+      });
       await foodAPI.connectWhatsApp(); 
     } catch (err) {
       console.error("Erro ao iniciar conexão:", err);

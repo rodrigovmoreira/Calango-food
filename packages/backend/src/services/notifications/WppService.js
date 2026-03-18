@@ -32,13 +32,40 @@ class WppService {
         dataPath: './.wwebjs_auth' // Define um caminho fixo para os dados
       }),
       puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-extensions',
+          '--disable-component-extensions-with-background-pages',
+          '--disable-default-apps',
+          '--mute-audio',
+          '--no-default-browser-check',
+          '--autoplay-policy=user-gesture-required',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-notifications',
+          '--disable-background-networking',
+          '--disable-breakpad',
+          '--disable-component-update',
+          '--disable-domain-reliability',
+          '--disable-sync',
+          '--disable-remote-fonts',
+          '--blink-settings=imagesEnabled=false',
+          '--disable-software-rasterizer',
+          '--disable-features=IsolateOrigins,site-per-process'
+        ]
       }
     });
 
     // Marcamos como iniciando
     this.sessions.set(tenantId.toString(), { client, status: 'connecting' });
+    this.io.to(tenantId.toString()).emit('whatsapp_status', { status: 'Iniciando...' });
 
     client.on('qr', async (qr) => {
       const qrBase64 = await qrcode.toDataURL(qr);
