@@ -13,7 +13,9 @@ const DeliveryDriverSchema = new mongoose.Schema({
     enum: ['disponivel', 'ocupado', 'offline'], 
     default: 'offline' 
   },
-  priority: { type: Number, default: 0 } 
+  priority: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true },
+  deliveriesToday: { type: Number, default: 0 } 
 }, { timestamps: true });
 
 export default mongoose.model('DeliveryDriver', DeliveryDriverSchema);

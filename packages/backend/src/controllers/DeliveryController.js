@@ -9,7 +9,7 @@ class DeliveryController {
   async listDrivers(req, res) {
     try {
       const tenantId = req.tenantId || req.query.tenantId; // Protegido
-      const drivers = await DeliveryDriver.find({ tenantId }).sort({ priority: -1 });
+      const drivers = await DeliveryDriver.find({ tenantId, isActive: true }).sort({ priority: -1 });
       res.json(drivers);
     } catch (error) {
       res.status(500).json({ error: "Erro ao listar motoboys" });
@@ -63,6 +63,78 @@ class DeliveryController {
     } catch (error) {
       console.error("Falha ao despachar:", error);
       res.status(500).json({ error: "Falha ao despachar pedido" });
+    }
+  }
+
+  // Cria um novo motoboy
+  async createDriver(req, res) {
+    try {
+      const tenantId = req.tenantId;
+      const { name, whatsapp, status, priority } = req.body;
+      
+      if (!name || !whatsapp) {
+        return res.status(400).json({ message: "Nome e WhatsApp são obrigatórios." });
+      }
+
+      const driver = new DeliveryDriver({
+        tenantId,
+        name,
+        whatsapp,
+        status: status || 'offline',
+        priority: priority || 0
+      });
+
+      await driver.save();
+      res.status(201).json(driver);
+    } catch (error) {
+      console.error("Erro ao criar motoboy:", error);
+      res.status(500).json({ error: "Erro ao criar motoboy" });
+    }
+  }
+
+  // Atualiza os dados do motoboy (status, priority, etc)
+  async updateDriver(req, res) {
+    try {
+      const tenantId = req.tenantId;
+      const { id } = req.params;
+      
+      const driver = await DeliveryDriver.findOneAndUpdate(
+        { _id: id, tenantId },
+        { ...req.body },
+        { new: true }
+      );
+
+      if (!driver) {
+        return res.status(404).json({ message: "Motoboy não encontrado." });
+      }
+
+      res.json(driver);
+    } catch (error) {
+      console.error("Erro ao atualizar motoboy:", error);
+      res.status(500).json({ error: "Erro ao atualizar motoboy" });
+    }
+  }
+
+  // Desativa ou deleta logicamente o motoboy
+  async deleteDriver(req, res) {
+    try {
+      const tenantId = req.tenantId;
+      const { id } = req.params;
+
+      const driver = await DeliveryDriver.findOneAndUpdate(
+        { _id: id, tenantId },
+        { isActive: false },
+        { new: true }
+      );
+
+      if (!driver) {
+        return res.status(404).json({ message: "Motoboy não encontrado." });
+      }
+
+      res.json({ message: "Motoboy removido com sucesso.", driver });
+    } catch (error) {
+      console.error("Erro ao remover motoboy:", error);
+      res.status(500).json({ error: "Erro ao remover motoboy" });
     }
   }
 }

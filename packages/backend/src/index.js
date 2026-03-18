@@ -59,8 +59,11 @@ app.get('/', (req, res) => {
 });
 
 // Rotas de Logística do Calango-food
-app.get('/api/drivers', deliveryController.listDrivers);
-app.post('/api/dispatch', deliveryController.dispatchOrder);
+app.get('/api/drivers', protect, deliveryController.listDrivers);
+app.post('/api/drivers', protect, deliveryController.createDriver);
+app.put('/api/drivers/:id', protect, deliveryController.updateDriver);
+app.delete('/api/drivers/:id', protect, deliveryController.deleteDriver);
+app.post('/api/dispatch', protect, deliveryController.dispatchOrder);
 app.get('/api/orders', protect, orderController.getOrders);
 // Nova rota pública para criar pedido a partir do cardápio
 app.post('/api/orders', orderController.createOrder);
