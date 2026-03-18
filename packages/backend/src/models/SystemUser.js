@@ -13,18 +13,18 @@ const systemUserSchema = new mongoose.Schema({
   operatingHours: {
     type: [{
       day: { type: Number, min: 0, max: 6 }, // 0=Domingo, 1=Segunda...
-      openTime: { type: String, default: '18:00' },
+      openTime: { type: String, default: '08:00' },
       closeTime: { type: String, default: '23:00' },
       isActive: { type: Boolean, default: true }
     }],
     default: [
-      { day: 0, openTime: '18:00', closeTime: '23:59', isActive: true },
-      { day: 1, openTime: '18:00', closeTime: '23:59', isActive: false }, // Segunda folga
-      { day: 2, openTime: '18:00', closeTime: '23:59', isActive: true },
-      { day: 3, openTime: '18:00', closeTime: '23:59', isActive: true },
-      { day: 4, openTime: '18:00', closeTime: '23:59', isActive: true },
-      { day: 5, openTime: '18:00', closeTime: '23:59', isActive: true },
-      { day: 6, openTime: '18:00', closeTime: '23:59', isActive: true }
+      { day: 0, openTime: '08:00', closeTime: '23:59', isActive: true },
+      { day: 1, openTime: '08:00', closeTime: '23:59', isActive: false }, // Segunda folga
+      { day: 2, openTime: '08:00', closeTime: '23:59', isActive: true },
+      { day: 3, openTime: '08:00', closeTime: '23:59', isActive: true },
+      { day: 4, openTime: '08:00', closeTime: '23:59', isActive: true },
+      { day: 5, openTime: '08:00', closeTime: '23:59', isActive: true },
+      { day: 6, openTime: '08:00', closeTime: '23:59', isActive: true }
     ]
   }
 });
