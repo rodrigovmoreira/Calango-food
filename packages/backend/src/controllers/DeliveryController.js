@@ -5,11 +5,11 @@ import Order from '../models/Order.js';
 import WppService from '../services/notifications/WppService.js';
 
 class DeliveryController {
-  // Lista entregadores do restaurante logado
+  // Lista entregadores do restaurante logado (Todos, incluindo inativos)
   async listDrivers(req, res) {
     try {
       const tenantId = req.tenantId || req.query.tenantId; // Protegido
-      const drivers = await DeliveryDriver.find({ tenantId, isActive: true }).sort({ priority: -1 });
+      const drivers = await DeliveryDriver.find({ tenantId }).sort({ priority: -1 });
       res.json(drivers);
     } catch (error) {
       res.status(500).json({ error: "Erro ao listar entregadores" });
@@ -28,10 +28,11 @@ class DeliveryController {
         return res.status(404).json({ message: "Pedido não encontrado." });
       }
 
-      // 2. Busca o próximo entregador disponível por prioridade
+      // 2. Busca o próximo entregador disponível e ativo por prioridade
       const driver = await DeliveryDriver.findOne({
         tenantId,
-        status: 'disponivel'
+        status: 'disponivel',
+        isActive: { $ne: false } // Garante que o entregador não está inativado
       }).sort({ priority: -1 });
 
       if (!driver) {
@@ -70,10 +71,16 @@ class DeliveryController {
   async createDriver(req, res) {
     try {
       const tenantId = req.tenantId;
-      const { name, whatsapp, status, priority } = req.body;
+      const { name, whatsapp, status, priority, isActive } = req.body;
 
       if (!name || !whatsapp) {
         return res.status(400).json({ message: "Nome e WhatsApp são obrigatórios." });
+      }
+
+      // Check for duplicate WhatsApp number in the same tenant
+      const existingDriver = await DeliveryDriver.findOne({ tenantId, whatsapp });
+      if (existingDriver) {
+        return res.status(400).json({ message: "Já existe um entregador cadastrado com este número de WhatsApp." });
       }
 
       const driver = new DeliveryDriver({
@@ -81,7 +88,8 @@ class DeliveryController {
         name,
         whatsapp,
         status: status || 'offline',
-        priority: priority || 0
+        priority: priority || 0,
+        isActive: isActive !== undefined ? isActive : true
       });
 
       await driver.save();
@@ -97,6 +105,19 @@ class DeliveryController {
     try {
       const tenantId = req.tenantId;
       const { id } = req.params;
+
+      // Se estiver atualizando o whatsapp, verifica se já não existe outro com o mesmo número
+      if (req.body.whatsapp) {
+        const existingDriver = await DeliveryDriver.findOne({ 
+          tenantId, 
+          whatsapp: req.body.whatsapp,
+          _id: { $ne: id } // Exclui o próprio entregador da busca
+        });
+        
+        if (existingDriver) {
+          return res.status(400).json({ message: "Este número de WhatsApp já está sendo usado por outro entregador." });
+        }
+      }
 
       const driver = await DeliveryDriver.findOneAndUpdate(
         { _id: id, tenantId },
@@ -115,17 +136,13 @@ class DeliveryController {
     }
   }
 
-  // Desativa ou deleta logicamente o entregador
+  // Deleta o entregador definitivamente do banco de dados
   async deleteDriver(req, res) {
     try {
       const tenantId = req.tenantId;
       const { id } = req.params;
 
-      const driver = await DeliveryDriver.findOneAndUpdate(
-        { _id: id, tenantId },
-        { isActive: false },
-        { new: true }
-      );
+      const driver = await DeliveryDriver.findOneAndDelete({ _id: id, tenantId });
 
       if (!driver) {
         return res.status(404).json({ message: "Entregador não encontrado." });
