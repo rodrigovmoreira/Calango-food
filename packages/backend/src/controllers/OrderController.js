@@ -51,13 +51,71 @@ class OrderController {
         // Soma o preço base do produto
         let currentItemPrice = product.price;
 
-        // Soma os opcionais dinâmicos (Bordas, Extras, Pontos da carne, etc)
+        // Soma os opcionais dinâmicos com Responsabilidade Extrema (valida pelo Banco de Dados)
+        let customPrice = 0;
+        const finalCustomizations = [];
+
         if (item.customizations && Array.isArray(item.customizations)) {
-          item.customizations.forEach(opt => {
-            currentItemPrice += (opt.extraPrice || 0);
-          });
+          // Agrupa as customizações pelo nome do grupo a qual pertencem
+          // Ex: { "Escolha seus Sabores": ["Calabresa", "Mussarela"] }
+          const groupedCustomizations = {};
+          
+          for (const opt of item.customizations) {
+            // Cada opt precisa informar a qual grupo ele pertence e seu nome
+            const groupName = opt.groupName;
+            if (!groupedCustomizations[groupName]) {
+              groupedCustomizations[groupName] = [];
+            }
+            groupedCustomizations[groupName].push(opt);
+          }
+
+          // Para cada grupo enviado, vamos calcular com base na regra definida no banco
+          for (const [groupName, selectedOpts] of Object.entries(groupedCustomizations)) {
+            // Encontra o grupo no banco
+            const groupDef = product.attributeGroups.find(g => g.name === groupName);
+            
+            if (groupDef) {
+              const pricesForGroup = [];
+              const groupSelections = [];
+
+              for (const opt of selectedOpts) {
+                // Encontra a opção real dentro do grupo
+                const optionDef = groupDef.options.find(o => o.name === opt.name);
+                if (optionDef) {
+                  pricesForGroup.push(optionDef.price);
+                  groupSelections.push({
+                    groupName: groupDef.name,
+                    name: optionDef.name,
+                    price: optionDef.price // salva o preço real do banco
+                  });
+                }
+              }
+
+              // Aplica a estratégia de preço (pricingStrategy) do grupo: SUM, HIGHEST, AVERAGE
+              let groupTotal = 0;
+              if (pricesForGroup.length > 0) {
+                if (groupDef.pricingStrategy === 'HIGHEST') {
+                  groupTotal = Math.max(...pricesForGroup);
+                } else if (groupDef.pricingStrategy === 'AVERAGE') {
+                  const sum = pricesForGroup.reduce((a, b) => a + b, 0);
+                  groupTotal = sum / groupDef.maxOptions; // Ex para Proporcional/Média
+                  // Obs: usualmente pizza meia a meia proporcional divide pelas escolhas maxOptions ou length.
+                  // Se escolher 2 de maxOptions=2, divide por 2. 
+                  // Usaremos length para dividir o valor pelas quantias de escolhas atuais desse grupo.
+                  groupTotal = sum / pricesForGroup.length; 
+                } else {
+                  // SUM (padrão)
+                  groupTotal = pricesForGroup.reduce((a, b) => a + b, 0);
+                }
+              }
+
+              customPrice += groupTotal;
+              finalCustomizations.push(...groupSelections);
+            }
+          }
         }
 
+        currentItemPrice += customPrice;
         calculatedTotal += (currentItemPrice * item.quantity);
         
         validatedItems.push({
@@ -65,7 +123,7 @@ class OrderController {
           name: product.name,
           price: currentItemPrice,
           quantity: item.quantity,
-          customizations: item.customizations || [] // Mantém a flexibilidade para qualquer restaurante
+          customizations: finalCustomizations // Array seguro, preços reais
         });
       }
 

@@ -44,6 +44,7 @@ export const authAPI = {
 export const foodAPI = {
   // 0. Estabelecimento (Público)
   getPublicProfile: (tenantId) => api.get(`/api/store/public/${tenantId}`),
+  getPublicMenu: (slug) => api.get(`/api/store/menu/${slug}`),
 
   // 1. Cozinha e Pedidos
   getOrders: (status) => api.get('/api/orders', { params: { status } }),

@@ -11,11 +11,16 @@ const ProductSchema = new mongoose.Schema({
   isAvailable: { type: Boolean, default: true },
   // A MÁGICA DA FLEXIBILIDADE:
   attributeGroups: [{
-    name: { type: String }, // ex: "Escolha sua Borda", "Ponto da Carne"
+    name: { type: String, required: true }, // ex: "Escolha seu Sabor", "Adicionais"
     minOptions: { type: Number, default: 0 },
     maxOptions: { type: Number, default: 1 },
+    pricingStrategy: { 
+      type: String, 
+      enum: ['SUM', 'HIGHEST', 'AVERAGE'], 
+      default: 'SUM' 
+    },
     options: [{
-      name: { type: String },
+      name: { type: String, required: true },
       price: { type: Number, default: 0 }
     }]
   }]

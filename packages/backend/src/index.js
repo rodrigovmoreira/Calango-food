@@ -78,6 +78,7 @@ app.delete('/api/products/:id', protect, productController.deleteProduct);
 // Rotas de Loja / Tenant (Público)
 import * as authController from './controllers/authController.js';
 app.get('/api/store/public/:tenantId', authController.getPublicProfile);
+app.get('/api/store/menu/:slug', authController.getPublicMenu);
 
 app.post('/api/webhooks/payments', webhookController.handlePayment);
 // Rota para o usuário conectar o WhatsApp dele

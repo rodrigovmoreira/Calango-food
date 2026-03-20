@@ -9,6 +9,7 @@ const systemUserSchema = new mongoose.Schema({
   
   // Informações da Loja
   storeName: { type: String, default: 'Calango Food Delivery' },
+  slug: { type: String, unique: true, sparse: true },
   isOpen: { type: Boolean, default: true }, // Pausa manual emergencial
   operatingHours: {
     type: [{

@@ -9,6 +9,7 @@ import { FaShoppingBasket, FaClock, FaExclamationCircle } from 'react-icons/fa';
 import { isStoreOpen } from '../utils/dateUtils';
 import { foodAPI } from '../services/api';
 import { toaster } from "../components/ui/toaster";
+import CartDrawer from '../components/CartDrawer';
 
 export default function MenuPage() {
   const { slug } = useParams();
@@ -17,6 +18,11 @@ export default function MenuPage() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const removeFromCart = (cartId) => {
+    setCart(prev => prev.filter(item => item.cartId !== cartId));
+  };
 
   // 1. BUSCA DE DADOS REAIS DO BACKEND 
   useEffect(() => {
@@ -165,6 +171,7 @@ export default function MenuPage() {
             justifyContent="space-between"
             px={8}
             _hover={{ transform: 'scale(1.02)' }}
+            onClick={() => setIsCartOpen(true)}
           >
             <HStack gap={4}>
               <Icon as={FaShoppingBasket} boxSize="24px" />
@@ -177,6 +184,17 @@ export default function MenuPage() {
           </Button>
         </Box>
       )}
+
+      <CartDrawer 
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        removeFromCart={removeFromCart}
+        total={totalCart}
+        tenantId={restaurant._id}
+        isStoreOpen={isOpen}
+        restaurantName={restaurant.name}
+      />
     </Box>
   );
 }

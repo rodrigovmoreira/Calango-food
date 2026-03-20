@@ -141,3 +141,42 @@ export const getPublicProfile = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getPublicMenu = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    // Tenta achar por slug ou por ID como fallback
+    let user;
+    if (slug.match(/^[0-9a-fA-F]{24}$/)) {
+      user = await SystemUser.findById(slug);
+    } else {
+      user = await SystemUser.findOne({ slug });
+    }
+
+    if (!user) return res.status(404).json({ message: 'Store not found' });
+    
+    // Simplificando o envio do status aberto (MenuPages usa OperatingHours para validar no front)
+    // Mas também vamos enviar a flag global
+    const store = {
+      _id: user._id,
+      name: user.storeName || user.name || 'Calango Food',
+      primaryColor: user.primaryColor,
+      logoUrl: user.logoUrl,
+      operatingHours: user.operatingHours,
+      isOpen: user.isOpen
+    };
+
+    const Product = (await import('../models/Product.js')).default;
+    const menuItems = await Product.find({ tenantId: user._id, isAvailable: true });
+
+    res.json({
+      store,
+      menuItems
+    });
+
+  } catch (err) {
+    console.error('Error fetching public menu:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
