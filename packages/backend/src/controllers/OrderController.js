@@ -15,21 +15,38 @@ class OrderController {
     }
   }
   async createOrder(req, res) {
-    // Para rota pública, tenantId vem do body
-    const { clientId, items, method, address, tenantId } = req.body;
+    const { slug, clientId, customerName, items, payment, delivery, tenantId } = req.body;
     
-    // Fallback caso a rota permaneça protegida para algum admin
-    const finalTenantId = tenantId || req.tenantId;
+    // Fallback de tenantId se a rota for usada internamente sem slug
+    let finalTenantId = tenantId || req.tenantId;
 
-    if (!finalTenantId) {
-      return res.status(400).json({ error: 'tenantId é obrigatório' });
+    if (slug) {
+      const SystemUser = (await import('../models/SystemUser.js')).default;
+      let user;
+      if (slug.match(/^[0-9a-fA-F]{24}$/)) {
+        user = await SystemUser.findById(slug);
+      } else {
+        user = await SystemUser.findOne({ slug });
+      }
+      if (!user) return res.status(404).json({ error: 'Restaurante não encontrado pelo slug.' });
+      
+      if (!user.isOpen) {
+         return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+      }
+      finalTenantId = user._id;
     }
 
-    // NOVA VALIDAÇÃO: Bloqueia se a loja estiver fechada administrativamente
+    if (!finalTenantId) {
+      return res.status(400).json({ error: 'slug ou tenantId é obrigatório' });
+    }
+
+    // NOVA VALIDAÇÃO (se o fallback foi usado sem slug)
     try {
-      const user = await import('../models/SystemUser.js').then(m => m.default).then(SystemUser => SystemUser.findById(finalTenantId));
-      if (user && !user.isOpen) {
-         return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+      if (!slug) {
+        const user = await import('../models/SystemUser.js').then(m => m.default).then(SystemUser => SystemUser.findById(finalTenantId));
+        if (user && !user.isOpen) {
+           return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+        }
       }
     } catch (err) {
       console.error("Erro ao checar status da loja", err);
@@ -40,7 +57,7 @@ class OrderController {
     const validatedItems = [];
 
     try {
-      // 1. VALIDAÇÃO E CÁLCULO (Anti-Fraude): Não confiamos no 'total' vindo do front
+      // 1. VALIDAÇÃO E CÁLCULO (Anti-Fraude): Não confiamos no 'total'
       for (const item of items) {
         const product = await Product.findOne({ _id: item.productId, tenantId: finalTenantId });
         
@@ -48,16 +65,66 @@ class OrderController {
           throw new Error(`Produto ${item.name} não disponível.`);
         }
 
-        // Soma o preço base do produto
         let currentItemPrice = product.price;
+        let customPrice = 0;
+        const finalCustomizations = [];
 
-        // Soma os opcionais dinâmicos (Bordas, Extras, Pontos da carne, etc)
         if (item.customizations && Array.isArray(item.customizations)) {
-          item.customizations.forEach(opt => {
-            currentItemPrice += (opt.extraPrice || 0);
-          });
+          const groupedCustomizations = {};
+          
+          for (const opt of item.customizations) {
+            // Descobre a qual grupo essa opção pertence dinamicamente
+            let foundGroupName = 'Diversos'; // Fallback
+            for (const g of product.attributeGroups) {
+               if (g.options.some(o => o.name === opt.name)) {
+                 foundGroupName = g.name;
+                 break;
+               }
+            }
+            if (!groupedCustomizations[foundGroupName]) {
+              groupedCustomizations[foundGroupName] = [];
+            }
+            groupedCustomizations[foundGroupName].push(opt);
+          }
+
+          // Para cada grupo detectado, aplicamos a pricing strategy do banco
+          for (const [groupName, selectedOpts] of Object.entries(groupedCustomizations)) {
+            const groupDef = product.attributeGroups.find(g => g.name === groupName);
+            
+            if (groupDef) {
+              const pricesForGroup = [];
+              const groupSelections = [];
+
+              for (const opt of selectedOpts) {
+                const optionDef = groupDef.options.find(o => o.name === opt.name);
+                if (optionDef) {
+                  pricesForGroup.push(optionDef.price);
+                  groupSelections.push({
+                    name: optionDef.name,
+                    price: optionDef.price // salva o preço real do banco
+                  });
+                }
+              }
+
+              let groupTotal = 0;
+              if (pricesForGroup.length > 0) {
+                if (groupDef.pricingStrategy === 'HIGHEST') {
+                  groupTotal = Math.max(...pricesForGroup);
+                } else if (groupDef.pricingStrategy === 'AVERAGE') {
+                  const sum = pricesForGroup.reduce((a, b) => a + b, 0);
+                  groupTotal = sum / pricesForGroup.length; 
+                } else {
+                  groupTotal = pricesForGroup.reduce((a, b) => a + b, 0);
+                }
+              }
+
+              customPrice += groupTotal;
+              finalCustomizations.push(...groupSelections);
+            }
+          }
         }
 
+        currentItemPrice += customPrice;
         calculatedTotal += (currentItemPrice * item.quantity);
         
         validatedItems.push({
@@ -65,21 +132,29 @@ class OrderController {
           name: product.name,
           price: currentItemPrice,
           quantity: item.quantity,
-          customizations: item.customizations || [] // Mantém a flexibilidade para qualquer restaurante
+          customizations: finalCustomizations
         });
       }
+
+      const methodToUse = payment?.method || req.body.method || 'pix';
+      const addressToUse = delivery?.address || req.body.address;
 
       // 2. Criação do Registro Inicial
       newOrder = await Order.create({
         tenantId: finalTenantId,
         clientId,
+        customerName: customerName || 'Visitante',
         items: validatedItems,
         total: calculatedTotal,
         payment: { 
-          method, 
+          method: methodToUse, 
           status: 'pending' 
         },
-        delivery: { address }
+        delivery: { 
+          type: delivery?.type || 'delivery',
+          address: addressToUse,
+          reference: delivery?.reference || ''
+        }
       });
 
       // 3. Processamento via Strategy Pattern

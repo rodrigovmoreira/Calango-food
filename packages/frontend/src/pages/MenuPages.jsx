@@ -9,6 +9,7 @@ import { FaShoppingBasket, FaClock, FaExclamationCircle } from 'react-icons/fa';
 import { isStoreOpen } from '../utils/dateUtils';
 import { foodAPI } from '../services/api';
 import { toaster } from "../components/ui/toaster";
+import CartDrawer from '../components/CartDrawer';
 
 export default function MenuPage() {
   const { slug } = useParams();
@@ -17,6 +18,11 @@ export default function MenuPage() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const removeFromCart = (cartId) => {
+    setCart(prev => prev.filter(item => item.cartId !== cartId));
+  };
 
   // 1. BUSCA DE DADOS REAIS DO BACKEND 
   useEffect(() => {
@@ -77,106 +83,201 @@ export default function MenuPage() {
   const categories = [...new Set(products.map(p => p.category))];
 
   return (
-    <Box minH="100vh" bg="gray.50" pb="120px">
+    <Box minH="100vh" bg="gray.100" pb="120px">
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
-        h={{ base: "180px", md: "260px" }} 
-        bgGradient={`linear(to-br, ${restaurant.primaryColor || '{colors.brand.700}'} 75%, {colors.brand.neon} 100%)`} 
+        h={{ base: "220px", md: "300px" }} 
+        bgGradient="to-br"
+        gradientFrom={restaurant.primaryColor || "brand.700"}
+        gradientTo="brand.neon"
         justify="center" 
         align="center"
         color="white"
         textAlign="center"
         px={4}
+        position="relative"
       >
-        <VStack gap={3}>
-          {restaurant.logoUrl && <Image src={restaurant.logoUrl} h="80px" borderRadius="full" mb={2} />}
-          <Heading size="3xl" fontWeight="800" textShadow="md">{restaurant.name}</Heading>
-          <HStack bg="rgba(0,0,0,0.2)" px={4} py={1} borderRadius="full">
+        <VStack gap={3} position="relative" top="-20px">
+          {restaurant.logoUrl && (
+            <Image 
+              src={restaurant.logoUrl} 
+              h="90px" 
+              w="90px" 
+              objectFit="cover" 
+              borderRadius="full" 
+              mb={2} 
+              border="4px solid rgba(255,255,255,0.2)"
+              boxShadow="xl"
+            />
+          )}
+          <Heading size="4xl" fontWeight="900" letterSpacing="tight" textShadow="0px 2px 10px rgba(0,0,0,0.3)">
+            {restaurant.name}
+          </Heading>
+          <HStack bg="rgba(0,0,0,0.3)" backdropFilter="blur(5px)" px={5} py={1.5} borderRadius="full">
             <Icon as={FaClock} />
-            <Text fontSize="sm" fontWeight="bold">
-              {isOpen ? "ABERTO" : "FECHADO"}
+            <Text fontSize="sm" fontWeight="bold" letterSpacing="wide">
+              {isOpen ? "LOJA ABERTA" : "LOJA FECHADA"}
             </Text>
           </HStack>
         </VStack>
       </Flex>
 
-      <Container maxW="container.md" mt="-30px">
-        <VStack gap={10} align="stretch">
-          {categories.map(cat => (
-            <Box key={cat}>
-              <Heading size="md" mb={6} color="gray.700" borderBottom="2px solid" borderColor="brand.500" pb={2} w="fit-content">
-                {cat}
-              </Heading>
-              <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
-                {products.filter(p => p.category === cat).map(product => (
-                  <Box 
-                    key={product._id} 
-                    p={4} 
-                    bg="white" 
-                    borderRadius="2xl" 
-                    boxShadow="sm" 
-                    border="1px solid" 
-                    borderColor="gray.100"
-                    _hover={{ borderColor: "brand.300", boxShadow: "md" }}
-                    transition="all 0.2s"
-                  >
-                    <Flex justify="space-between" align="center" gap={4}>
+      <Container maxW="container.lg" mt={{ base: "-40px", md: "-60px" }} position="relative" zIndex={2}>
+        <Box 
+          bg="white" 
+          p={{ base: 5, md: 10 }} 
+          borderRadius="3xl" 
+          boxShadow="0 20px 40px -10px rgba(0,0,0,0.08)"
+          minH="50vh"
+        >
+          <VStack gap={10} align="stretch">
+            {categories.map((cat, index) => (
+              <Box key={cat}>
+                <Heading 
+                  size="xl" 
+                  mb={6} 
+                  color="gray.800" 
+                  fontWeight="900"
+                  letterSpacing="tight"
+                  mt={index === 0 ? 0 : 8}
+                >
+                  {cat}
+                </Heading>
+                
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+                  {products.filter(p => p.category === cat).map(product => (
+                    <Flex 
+                      key={product._id} 
+                      p={5} 
+                      bg="gray.50" 
+                      borderRadius="2xl" 
+                      border="1px solid" 
+                      borderColor="gray.100"
+                      _hover={{ 
+                        borderColor: "brand.300", 
+                        bg: "white",
+                        boxShadow: "0 10px 30px -10px rgba(0,0,0,0.12)", 
+                        transform: "translateY(-4px)" 
+                      }}
+                      transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                      align="center" 
+                      gap={4}
+                      cursor={product.isAvailable && isOpen ? "pointer" : "not-allowed"}
+                      opacity={product.isAvailable ? 1 : 0.6}
+                      onClick={() => { if(product.isAvailable && isOpen) addToCart(product); }}
+                      position="relative"
+                      overflow="hidden"
+                    >
                       <VStack align="start" gap={1} flex={1}>
-                        <Text fontWeight="bold" fontSize="lg">{product.name}</Text>
-                        <Text fontSize="xs" color="gray.500" noOfLines={2}>{product.description}</Text>
-                        <Text color="brand.600" fontWeight="extrabold" fontSize="lg" mt={1}>
+                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight">
+                          {product.name}
+                        </Text>
+                        <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
+                          {product.description}
+                        </Text>
+                        <Text color="brand.600" fontWeight="900" fontSize="lg">
                           R$ {product.price.toFixed(2)}
                         </Text>
                       </VStack>
                       
-                      {product.imageUrl && (
-                        <Image src={product.imageUrl} boxSize="80px" objectFit="cover" borderRadius="lg" />
-                      )}
-
-                      <Button 
-                        size="sm" 
-                        colorPalette="brand" 
-                        disabled={!isOpen || !product.isAvailable}
-                        onClick={() => addToCart(product)}
-                      >
-                        {product.isAvailable ? 'Adicionar' : 'Esgotado'}
-                      </Button>
+                      <VStack align="end" gap={3}>
+                        {product.imageUrl && (
+                          <Image 
+                            src={product.imageUrl} 
+                            boxSize={{ base: "90px", md: "110px" }} 
+                            objectFit="cover" 
+                            borderRadius="xl" 
+                            boxShadow="md"
+                          />
+                        )}
+                        <Button 
+                          size="xs" 
+                          colorPalette="brand" 
+                          borderRadius="full"
+                          px={4}
+                          py={4}
+                          fontWeight="bold"
+                          textTransform="uppercase"
+                          letterSpacing="wider"
+                          disabled={!isOpen || !product.isAvailable}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if(product.isAvailable && isOpen) addToCart(product); 
+                          }}
+                        >
+                          {product.isAvailable ? 'Adicionar' : 'Esgotado'}
+                        </Button>
+                      </VStack>
                     </Flex>
-                  </Box>
-                ))}
-              </SimpleGrid>
-            </Box>
-          ))}
-        </VStack>
+                  ))}
+                </SimpleGrid>
+              </Box>
+            ))}
+
+            {categories.length === 0 && (
+              <Center py={20}>
+                <Text color="gray.400" fontSize="lg">Nenhum produto cadastrado nesta loja.</Text>
+              </Center>
+            )}
+          </VStack>
+        </Box>
       </Container>
 
-      {/* FOOTER DA SACOLA (STICKY)  */}
+      {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
       {cart.length > 0 && (
-        <Box position="fixed" bottom={6} left="0" w="100%" px={4} zIndex={1000}>
+        <Box 
+          position="fixed" 
+          bottom={0} 
+          left="0" 
+          w="100%" 
+          px={4} 
+          py={6}
+          bgGradient="to-t"
+          gradientFrom="rgba(255,255,255,0.9)"
+          gradientTo="rgba(255,255,255,0)"
+          zIndex={1000}
+        >
           <Button 
             w="full" 
             maxW="container.md" 
             mx="auto"
-            h="64px" 
+            h="70px" 
             display="flex"
             colorPalette="brand" 
-            boxShadow="xl"
+            boxShadow="0 10px 25px -5px rgba(0,0,0,0.3)"
             borderRadius="2xl"
             justifyContent="space-between"
             px={8}
-            _hover={{ transform: 'scale(1.02)' }}
+            _hover={{ transform: 'translateY(-2px) scale(1.01)', boxShadow: "0 15px 35px -5px rgba(0,0,0,0.4)" }}
+            transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            onClick={() => setIsCartOpen(true)}
           >
             <HStack gap={4}>
-              <Icon as={FaShoppingBasket} boxSize="24px" />
+              <Flex bg="whiteAlpha.300" p={2} borderRadius="full">
+                <Icon as={FaShoppingBasket} boxSize="20px" />
+              </Flex>
               <VStack align="start" gap={0}>
-                <Text fontSize="sm" opacity={0.8}>{cart.length} {cart.length === 1 ? 'item' : 'itens'}</Text>
-                <Text fontWeight="bold">Ver Sacola</Text>
+                <Text fontSize="xs" fontWeight="bold" opacity={0.9} textTransform="uppercase" letterSpacing="wide">
+                  {cart.length} {cart.length === 1 ? 'item' : 'itens'}
+                </Text>
+                <Text fontWeight="black" fontSize="lg">Ver Sacola</Text>
               </VStack>
             </HStack>
-            <Text fontSize="xl" fontWeight="black">R$ {totalCart.toFixed(2)}</Text>
+            <Text fontSize="2xl" fontWeight="black" letterSpacing="tight">R$ {totalCart.toFixed(2)}</Text>
           </Button>
         </Box>
       )}
+
+      <CartDrawer 
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        removeFromCart={removeFromCart}
+        total={totalCart}
+        slug={slug}
+        isStoreOpen={isOpen}
+        restaurantName={restaurant.name}
+      />
     </Box>
   );
 }
