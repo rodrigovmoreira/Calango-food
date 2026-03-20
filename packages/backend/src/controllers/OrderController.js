@@ -67,13 +67,13 @@ class OrderController {
 
         let currentItemPrice = product.price;
         let customPrice = 0;
+        let hasReplacementStrategy = false; // Flag para produtos onde a variação DITA o preço (ex: Pizza Gigante)
         const finalCustomizations = [];
 
         if (item.customizations && Array.isArray(item.customizations)) {
           const groupedCustomizations = {};
           
           for (const opt of item.customizations) {
-            // Descobre a qual grupo essa opção pertence dinamicamente
             let foundGroupName = 'Diversos'; // Fallback
             for (const g of product.attributeGroups) {
                if (g.options.some(o => o.name === opt.name)) {
@@ -87,7 +87,6 @@ class OrderController {
             groupedCustomizations[foundGroupName].push(opt);
           }
 
-          // Para cada grupo detectado, aplicamos a pricing strategy do banco
           for (const [groupName, selectedOpts] of Object.entries(groupedCustomizations)) {
             const groupDef = product.attributeGroups.find(g => g.name === groupName);
             
@@ -98,10 +97,11 @@ class OrderController {
               for (const opt of selectedOpts) {
                 const optionDef = groupDef.options.find(o => o.name === opt.name);
                 if (optionDef) {
-                  pricesForGroup.push(optionDef.price);
+                  const safePrice = Number(optionDef.price || 0);
+                  pricesForGroup.push(safePrice);
                   groupSelections.push({
                     name: optionDef.name,
-                    price: optionDef.price // salva o preço real do banco
+                    price: safePrice
                   });
                 }
               }
@@ -110,11 +110,13 @@ class OrderController {
               if (pricesForGroup.length > 0) {
                 if (groupDef.pricingStrategy === 'HIGHEST') {
                   groupTotal = Math.max(...pricesForGroup);
+                  hasReplacementStrategy = true; // Estratégia HIGHEST substitui o valor base
                 } else if (groupDef.pricingStrategy === 'AVERAGE') {
                   const sum = pricesForGroup.reduce((a, b) => a + b, 0);
                   groupTotal = sum / pricesForGroup.length; 
+                  hasReplacementStrategy = true; // Estratégia AVERAGE substitui o valor base
                 } else {
-                  groupTotal = pricesForGroup.reduce((a, b) => a + b, 0);
+                  groupTotal = pricesForGroup.reduce((a, b) => a + b, 0); // SUM apenas adiciona
                 }
               }
 
@@ -122,6 +124,11 @@ class OrderController {
               finalCustomizations.push(...groupSelections);
             }
           }
+        }
+
+        // Se encontrou alguma estratégia que substitua o preço (ex: Pizza Meio a Meio), zera o base.
+        if (hasReplacementStrategy) {
+          currentItemPrice = 0; 
         }
 
         currentItemPrice += customPrice;

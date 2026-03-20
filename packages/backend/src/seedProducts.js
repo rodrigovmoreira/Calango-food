@@ -36,7 +36,7 @@ const runSeed = async () => {
             maxOptions: 2,
             pricingStrategy: "HIGHEST", // Cobra a metade mais cara
             options: [
-              { name: "Meia Calabresa (Tradicional)", price: 45.90 },
+              { name: "Meia Calabresa (Tradicional)", price: 0.00 },
               { name: "Meia Mussarela (Tradicional)", price: 42.90 },
               { name: "Meia Frango com Catupiry (Especial)", price: 55.90 },
               { name: "Meia Marguerita (Especial)", price: 52.90 },

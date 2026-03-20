@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { 
   Box, Heading, Table, Button, Switch, IconButton, Flex, Badge, 
-  VStack, HStack, Text, Input, Field, Textarea
+  VStack, HStack, Text, Input, Textarea
 } from '@chakra-ui/react';
+import { Field } from '../components/ui/field';
 import { DialogRoot, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogCloseTrigger } from "../components/ui/dialog";
 import { Toaster, toaster } from "../components/ui/toaster";
 import { Edit2, Trash2, Plus, GripVertical } from 'lucide-react';
@@ -83,7 +84,7 @@ export default function Products() {
 
   const addOption = (groupIndex) => {
     const newGroups = [...attributeGroups];
-    newGroups[groupIndex].options.push({ name: '', price: 0 });
+    newGroups[groupIndex].options.push({ name: '', price: '' });
     setAttributeGroups(newGroups);
   };
 
@@ -161,50 +162,81 @@ export default function Products() {
                 <DialogCloseTrigger />
               </DialogHeader>
               <DialogBody pb={6}>
-                <VStack spacing={4} align="stretch" gap={4}>
+                <VStack spacing={4} align="stretch" gap={5}>
                   <Flex gap={4}>
-                    <Input placeholder="Nome do Produto *" value={name} onChange={(e) => setName(e.target.value)} flex={2}/>
-                    <Input type="number" placeholder="Preço Base *" value={price} onChange={(e) => setPrice(e.target.value)} flex={1}/>
+                    <Field label="Nome do Produto *" flex={2}>
+                      <Input placeholder="Ex: Pizza Gigante (8 Pedaços)" value={name} onChange={(e) => setName(e.target.value)} bg="white"/>
+                    </Field>
+                    <Field label="Preço Base (A partir de) *" flex={1}>
+                      <Box position="relative" w="full">
+                        <Text position="absolute" left={3} top="50%" transform="translateY(-50%)" color="gray.500" fontWeight="bold" fontSize="sm" zIndex={1}>R$</Text>
+                        <Input type="number" placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} w="full" pl={9} bg="white" />
+                      </Box>
+                    </Field>
                   </Flex>
-                  <Input placeholder="Categoria * (Ex: Pizzas, Bebidas)" value={category} onChange={(e) => setCategory(e.target.value)} />
-                  <Input placeholder="URL da Imagem (Opcional)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                  <Textarea placeholder="Descrição atrativa (Opcional)" value={description} onChange={(e) => setDescription(e.target.value)} />
+
+                  <Field label="Categoria *">
+                    <Input placeholder="Ex: Pizzas, Bebidas, Sobremesas" value={category} onChange={(e) => setCategory(e.target.value)} bg="white" />
+                  </Field>
+
+                  <Field label="URL da Imagem de Capa (Opcional)">
+                    <Input placeholder="https://..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} bg="white" />
+                  </Field>
+
+                  <Field label="Descrição detalhada e atrativa (Opcional)">
+                    <Textarea placeholder="Descreva os ingredientes ou diferenciais..." value={description} onChange={(e) => setDescription(e.target.value)} bg="white" rows={3} />
+                  </Field>
                   
-                  <Box mt={6}>
-                    <Flex justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.200" pb={2} mb={4}>
-                      <Heading size="md">Variações & Adicionais</Heading>
-                      <Button size="sm" variant="outline" onClick={addGroup}>+ Adicionar Grupo</Button>
+                  <Box mt={6} bg="gray.50" p={6} borderRadius="2xl" border="1px solid" borderColor="gray.100">
+                    <Flex justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.200" pb={4} mb={6}>
+                      <VStack align="start" gap={0}>
+                        <Heading size="md" color="gray.800">Variações & Adicionais</Heading>
+                        <Text fontSize="sm" color="gray.500">Ex: Escolha o sabor, borda ou adicionais.</Text>
+                      </VStack>
+                      <Button size="sm" colorPalette="brand" variant="outline" onClick={addGroup}>+ Adicionar Grupo</Button>
                     </Flex>
                     
                     {attributeGroups.map((group, gIdx) => (
-                      <Box key={gIdx} p={4} mb={4} borderWidth="1px" borderRadius="md" bg="gray.50" position="relative">
-                        <IconButton position="absolute" top={2} right={2} size="xs" colorPalette="red" variant="ghost" onClick={() => removeGroup(gIdx)}>
+                      <Box key={gIdx} p={5} mb={6} borderWidth="1px" borderRadius="xl" bg="white" position="relative" shadow="sm">
+                        <IconButton position="absolute" top={3} right={3} size="xs" colorPalette="red" variant="ghost" onClick={() => removeGroup(gIdx)}>
                           <Trash2 size={16} />
                         </IconButton>
-                        <Flex gap={4} mb={4} align="center">
-                          <Input placeholder="Nome do Grupo (Ex: Escolha a Borda)" value={group.name} onChange={(e) => updateGroup(gIdx, 'name', e.target.value)} flex={2} bg="white"/>
-                          <VStack align="start" gap={0} flex={1}>
-                            <Text fontSize="xs">Mínimo</Text>
-                            <Input type="number" value={group.minOptions} onChange={(e) => updateGroup(gIdx, 'minOptions', Number(e.target.value))} bg="white"/>
-                          </VStack>
-                          <VStack align="start" gap={0} flex={1}>
-                            <Text fontSize="xs">Máximo</Text>
-                            <Input type="number" value={group.maxOptions} onChange={(e) => updateGroup(gIdx, 'maxOptions', Number(e.target.value))} bg="white"/>
-                          </VStack>
+                        
+                        <Flex gap={4} mb={6} pr={8} align="flex-end">
+                          <Field label="Nome do Grupo" flex={2}>
+                            <Input placeholder="Ex: Escolha seus Sabores (Meio a Meio)" value={group.name} onChange={(e) => updateGroup(gIdx, 'name', e.target.value)} bg="gray.50"/>
+                          </Field>
+                          <Field label="Mínimo" flex={1}>
+                            <Input type="number" placeholder="Ex: 1" value={group.minOptions} onChange={(e) => updateGroup(gIdx, 'minOptions', Number(e.target.value))} bg="gray.50"/>
+                          </Field>
+                          <Field label="Máximo" flex={1}>
+                            <Input type="number" placeholder="Ex: 2" value={group.maxOptions} onChange={(e) => updateGroup(gIdx, 'maxOptions', Number(e.target.value))} bg="gray.50"/>
+                          </Field>
                         </Flex>
 
-                        <VStack align="stretch" gap={2} pl={4} borderLeft="2px solid" borderColor="brand.200">
+                        <VStack align="stretch" gap={3} pl={6} borderLeft="3px solid" borderColor="brand.300">
                           {group.options.map((opt, oIdx) => (
-                            <Flex key={oIdx} gap={2} align="center">
-                              <GripVertical size={16} color="gray" />
-                              <Input size="sm" placeholder="Nome da Opção" value={opt.name} onChange={(e) => updateOption(gIdx, oIdx, 'name', e.target.value)} bg="white"/>
-                              <Input size="sm" type="number" placeholder="Preço Extra (+R$)" value={opt.price} onChange={(e) => updateOption(gIdx, oIdx, 'price', Number(e.target.value))} bg="white" w="120px"/>
-                              <IconButton size="xs" colorPalette="red" variant="ghost" onClick={() => removeOption(gIdx, oIdx)}>
-                                <Trash2 size={14} />
+                            <Flex key={oIdx} gap={4} align="flex-end" bg="gray.50" p={3} borderRadius="lg" border="1px solid" borderColor="gray.100">
+                              <Flex align="center" gap={3} flex={2}>
+                                <GripVertical size={16} color="#CBD5E0" />
+                                <Field label={oIdx === 0 ? "Opção" : ""} w="full">
+                                  <Input size="md" placeholder="Ex: Meia Calabresa" value={opt.name} onChange={(e) => updateOption(gIdx, oIdx, 'name', e.target.value)} bg="white"/>
+                                </Field>
+                              </Flex>
+                              <Field label={oIdx === 0 ? "Preço Extra" : ""} w="160px">
+                                  <Box position="relative" w="full">
+                                    <Text position="absolute" left={3} top="50%" transform="translateY(-50%)" color="gray.500" fontWeight="bold" fontSize="sm" zIndex={1}>R$</Text>
+                                    <Input size="md" type="number" placeholder="0.00" value={opt.price} onChange={(e) => updateOption(gIdx, oIdx, 'price', e.target.value === '' ? '' : Number(e.target.value))} w="full" pl={9} bg="white" />
+                                  </Box>
+                              </Field>
+                              <IconButton mb={oIdx === 0 ? "2px" : "0"} size="sm" colorPalette="red" variant="ghost" onClick={() => removeOption(gIdx, oIdx)}>
+                                <Trash2 size={16} />
                               </IconButton>
                             </Flex>
                           ))}
-                          <Button size="xs" alignSelf="flex-start" variant="surface" onClick={() => addOption(gIdx)}>+ Adicionar Opção</Button>
+                          <Button size="sm" mt={2} alignSelf="flex-start" variant="surface" colorPalette="gray" onClick={() => addOption(gIdx)}>
+                            + Adicionar Opção
+                          </Button>
                         </VStack>
                       </Box>
                     ))}

@@ -10,6 +10,7 @@ import { isStoreOpen } from '../utils/dateUtils';
 import { foodAPI } from '../services/api';
 import { toaster } from "../components/ui/toaster";
 import CartDrawer from '../components/CartDrawer';
+import ProductModal from '../components/ProductModal';
 
 export default function MenuPage() {
   const { slug } = useParams();
@@ -19,6 +20,8 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const removeFromCart = (cartId) => {
     setCart(prev => prev.filter(item => item.cartId !== cartId));
@@ -61,7 +64,20 @@ export default function MenuPage() {
       });
       return;
     }
-    setCart(prev => [...prev, { ...product, cartId: Date.now() }]);
+    setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
+  };
+
+  const openProductModal = (product) => {
+    if (!isOpen) {
+      toaster.create({
+        title: "Loja Fechada",
+        description: "Não estamos aceitando pedidos no momento.",
+        type: "warning",
+      });
+      return;
+    }
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
   };
 
   const totalCart = cart.reduce((acc, item) => acc + item.price, 0);
@@ -164,7 +180,7 @@ export default function MenuPage() {
                       gap={4}
                       cursor={product.isAvailable && isOpen ? "pointer" : "not-allowed"}
                       opacity={product.isAvailable ? 1 : 0.6}
-                      onClick={() => { if(product.isAvailable && isOpen) addToCart(product); }}
+                      onClick={() => { if(product.isAvailable && isOpen) openProductModal(product); }}
                       position="relative"
                       overflow="hidden"
                     >
@@ -202,7 +218,7 @@ export default function MenuPage() {
                           disabled={!isOpen || !product.isAvailable}
                           onClick={(e) => { 
                             e.stopPropagation(); 
-                            if(product.isAvailable && isOpen) addToCart(product); 
+                            if(product.isAvailable && isOpen) openProductModal(product); 
                           }}
                         >
                           {product.isAvailable ? 'Adicionar' : 'Esgotado'}
@@ -277,6 +293,13 @@ export default function MenuPage() {
         slug={slug}
         isStoreOpen={isOpen}
         restaurantName={restaurant.name}
+      />
+
+      <ProductModal 
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        product={selectedProduct}
+        onAddToCart={addToCart}
       />
     </Box>
   );
