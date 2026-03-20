@@ -59,11 +59,11 @@ export default function Settings() {
   const handleConnect = async () => {
     try {
       // Força a interface de loading imediatamente no clique
-      dispatch({ 
-        type: 'SET_WHATSAPP_STATUS', 
-        payload: { mode: 'Iniciando...', isConnected: false } 
+      dispatch({
+        type: 'SET_WHATSAPP_STATUS',
+        payload: { mode: 'Iniciando...', isConnected: false }
       });
-      await foodAPI.connectWhatsApp(); 
+      await foodAPI.connectWhatsApp();
     } catch (err) {
       console.error("Erro ao iniciar conexão:", err);
     }
@@ -73,7 +73,7 @@ export default function Settings() {
     <Sidebar>
       <Box p={{ base: 4, md: 8 }}>
         <Heading color="brand.500" size="xl" mb={6}>Configurações</Heading>
-        
+
         <Tabs.Root defaultValue="hours" variant="line" colorPalette="brand">
           <Tabs.List mb={6}>
             <Tabs.Trigger value="hours" gap={2}><FaClock /> Loja e Horários</Tabs.Trigger>
@@ -88,16 +88,42 @@ export default function Settings() {
                   <VStack align="stretch" gap={4}>
                     <Box>
                       <Text fontWeight="bold" mb={2}>Nome da Loja</Text>
-                      <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} />
+                      <Input
+                        value={storeName}
+                        onChange={(e) => setStoreName(e.target.value)}
+                        placeholder="Ex: Calango Food Delivery"
+                      />
+                      {/* FEEDBACK DO LINK AMIGÁVEL */}
+                      <Text fontSize="xs" mt={2} color="gray.500">
+                        Seu link público será:
+                        <Text as="span" color="brand.600" fontWeight="bold" ml={1}>
+                          calangofood.com/cardapio/{storeName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-')}
+                        </Text>
+                      </Text>
                     </Box>
-                    <Flex justify="space-between" align="center" p={4} bg={isOpen ? "green.50" : "red.50"} borderRadius="md" borderWidth="1px" borderColor={isOpen ? "green.200" : "red.200"}>
+
+                    <Flex
+                      justify="space-between"
+                      align="center"
+                      p={4}
+                      bg={isOpen ? "green.50" : "red.50"}
+                      borderRadius="md"
+                      borderWidth="1px"
+                      borderColor={isOpen ? "green.200" : "red.200"}
+                    >
                       <Box>
                         <Heading size="sm" color={isOpen ? "green.700" : "red.700"}>
                           {isOpen ? "Sua loja está ABERTA" : "Sua loja está FECHADA (Pausa de Emergência)"}
                         </Heading>
                         <Text fontSize="sm" color="gray.600">Ative para fechar o cardápio independentemente do horário.</Text>
                       </Box>
-                      <Switch.Root checked={isOpen} onChange={(e) => setIsOpen(e.target.checked)} colorPalette={isOpen ? "green" : "red"} size="lg">
+                      {/* AJUSTE NO ONCHANGE DO SWITCH */}
+                      <Switch.Root
+                        checked={isOpen}
+                        onCheckedChange={(e) => setIsOpen(e.checked)}
+                        colorPalette={isOpen ? "green" : "red"}
+                        size="lg"
+                      >
                         <Switch.HiddenInput />
                         <Switch.Control><Switch.Thumb /></Switch.Control>
                       </Switch.Root>
@@ -117,13 +143,13 @@ export default function Settings() {
                           </Switch.Root>
                           <Text fontWeight={schedule.isActive ? "bold" : "normal"}>{DAYS_OF_WEEK[schedule.day]}</Text>
                         </Flex>
-                        
+
                         <Flex gap={4} align="center" flex={1} justify="flex-end" display={schedule.isActive ? "flex" : "none"}>
                           <Input type="time" w="130px" value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
                           <Text>até</Text>
                           <Input type="time" w="130px" value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
                         </Flex>
-                        
+
                         {!schedule.isActive && (
                           <Text color="red.500" fontSize="sm" fontStyle="italic" w="full" textAlign="right">Fechado</Text>
                         )}

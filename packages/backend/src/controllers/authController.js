@@ -62,30 +62,57 @@ export const login = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    const user = await SystemUser.findById(req.tenantId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    // No seu middleware de proteção, o ID do usuário logado é injetado como req.tenantId ou req.userId
+    // Certifique-se de usar o mesmo nome definido no seu middleware de 'protect'
+    const userId = req.tenantId || req.userId; 
+
+    const user = await SystemUser.findById(userId);
+    
+    // Se o usuário não existe, retornamos 404 em vez de deixar o código quebrar e dar 500
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
     
     res.json({
-      id: user._id, name: user.name, email: user.email,
-      storeName: user.storeName, isOpen: user.isOpen, operatingHours: user.operatingHours
+      id: user._id, 
+      name: user.name, 
+      email: user.email,
+      storeName: user.storeName || 'Calango Food Delivery', 
+      slug: user.slug,
+      isOpen: user.isOpen ?? true, 
+      operatingHours: user.operatingHours || []
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    // Isso vai te mostrar no console do terminal EXATAMENTE o que quebrou
+    console.error("Erro no getProfile:", err); 
+    res.status(500).json({ message: 'Erro interno ao buscar perfil', error: err.message });
   }
 };
 
 export const updateProfile = async (req, res) => {
   try {
     const { storeName, isOpen, operatingHours } = req.body;
-    const user = await SystemUser.findByIdAndUpdate(
-      req.tenantId,
-      { storeName, isOpen, operatingHours },
-      { new: true, runValidators: true }
-    );
+    
+    // 1. Buscamos o usuário pelo tenantId (id do logado)
+    const user = await SystemUser.findById(req.tenantId);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+    // 2. Atualizamos os campos manualmente para disparar o middleware 'save'
+    if (storeName !== undefined) user.storeName = storeName;
+    if (isOpen !== undefined) user.isOpen = isOpen;
+    if (operatingHours !== undefined) user.operatingHours = operatingHours;
+
+    // 3. Ao salvar, o slug será gerado automaticamente pelo middleware no Model
+    await user.save();
     
     res.json({
-      id: user._id, name: user.name, email: user.email,
-      storeName: user.storeName, isOpen: user.isOpen, operatingHours: user.operatingHours
+      id: user._id, 
+      name: user.name, 
+      email: user.email,
+      storeName: user.storeName, 
+      slug: user.slug, // Retornamos o slug para o front usar
+      isOpen: user.isOpen, 
+      operatingHours: user.operatingHours
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

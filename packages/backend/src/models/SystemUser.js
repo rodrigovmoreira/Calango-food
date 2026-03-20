@@ -31,9 +31,20 @@ const systemUserSchema = new mongoose.Schema({
 });
 
 // Hash da senha antes de salvar
-systemUserSchema.pre('save', async function() {
-  if (!this.isModified('password')) return;
-  this.password = await bcrypt.hash(this.password, 12);
+systemUserSchema.pre('save', function(next) {
+  // Só gera se o nome da loja mudou ou se o slug não existe
+  if (this.isModified('storeName') || !this.slug) {
+    this.slug = this.storeName
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-z0-9\s-]/g, '')    // Remove caracteres especiais
+      .replace(/[\s_]+/g, '-')        // Espaços para hífens
+      .replace(/-+/g, '-')            // Evita hífens duplos
+      .replace(/^-+|-+$/g, '');       // Limpa pontas
+  }
+  next();
 });
 
 // Método para verificar senha no login
