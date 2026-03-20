@@ -10,12 +10,22 @@ Seleção de Itens: Implementar a lógica de "Meio a Meio" e "Adicionais" (Borda
 
 Carrinho Inteligente: Validação de horário de funcionamento antes de permitir o fechamento do pedido.
 
+### 1.1. O que deve ser feito para testar 🧪
+Precisamos de um cardápio de teste para testar o cardápio público.
+O usuário deve ser capaz de adicionar itens ao carrinho, fechar o pedido e receber uma confirmação no WhatsApp.
+
+O usuário pode fazer um pedido sem login, mas deve informar o telefone para contato.
+
+### 👀 Observações do Pilar 1
+Pode ser necessário criar um ambiente do cliente em um futuro próximo, para ele ter opção de ver os pedidos realizados e o status de cada um.
+
 ## 2. Pilar do Pagamento: O Motor Financeiro
 Já temos a estrutura de Strategy e Adapter, agora precisamos da execução.
 
 Gateways Ativos: Configurar as chaves reais de PagBank (principal) e Stripe (redundância).
 
 Geração de PIX: O sistema deve apresentar o "Copia e Cola" imediatamente após o clique em "Finalizar".
+
 Webhook de Confirmação: O sistema deve "ouvir" o banco e mudar o status do pedido para paid sem intervenção humana.
 
 ## 3. Pilar da Cozinha: A Operação do Lojista
