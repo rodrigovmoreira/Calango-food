@@ -15,21 +15,38 @@ class OrderController {
     }
   }
   async createOrder(req, res) {
-    // Para rota pública, tenantId vem do body
-    const { clientId, items, method, address, tenantId } = req.body;
+    const { slug, clientId, customerName, items, payment, delivery, tenantId } = req.body;
     
-    // Fallback caso a rota permaneça protegida para algum admin
-    const finalTenantId = tenantId || req.tenantId;
+    // Fallback de tenantId se a rota for usada internamente sem slug
+    let finalTenantId = tenantId || req.tenantId;
 
-    if (!finalTenantId) {
-      return res.status(400).json({ error: 'tenantId é obrigatório' });
+    if (slug) {
+      const SystemUser = (await import('../models/SystemUser.js')).default;
+      let user;
+      if (slug.match(/^[0-9a-fA-F]{24}$/)) {
+        user = await SystemUser.findById(slug);
+      } else {
+        user = await SystemUser.findOne({ slug });
+      }
+      if (!user) return res.status(404).json({ error: 'Restaurante não encontrado pelo slug.' });
+      
+      if (!user.isOpen) {
+         return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+      }
+      finalTenantId = user._id;
     }
 
-    // NOVA VALIDAÇÃO: Bloqueia se a loja estiver fechada administrativamente
+    if (!finalTenantId) {
+      return res.status(400).json({ error: 'slug ou tenantId é obrigatório' });
+    }
+
+    // NOVA VALIDAÇÃO (se o fallback foi usado sem slug)
     try {
-      const user = await import('../models/SystemUser.js').then(m => m.default).then(SystemUser => SystemUser.findById(finalTenantId));
-      if (user && !user.isOpen) {
-         return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+      if (!slug) {
+        const user = await import('../models/SystemUser.js').then(m => m.default).then(SystemUser => SystemUser.findById(finalTenantId));
+        if (user && !user.isOpen) {
+           return res.status(400).json({ error: 'Desculpe, a loja está fechada no momento.' });
+        }
       }
     } catch (err) {
       console.error("Erro ao checar status da loja", err);
@@ -40,7 +57,7 @@ class OrderController {
     const validatedItems = [];
 
     try {
-      // 1. VALIDAÇÃO E CÁLCULO (Anti-Fraude): Não confiamos no 'total' vindo do front
+      // 1. VALIDAÇÃO E CÁLCULO (Anti-Fraude): Não confiamos no 'total'
       for (const item of items) {
         const product = await Product.findOne({ _id: item.productId, tenantId: finalTenantId });
         
@@ -48,30 +65,30 @@ class OrderController {
           throw new Error(`Produto ${item.name} não disponível.`);
         }
 
-        // Soma o preço base do produto
         let currentItemPrice = product.price;
-
-        // Soma os opcionais dinâmicos com Responsabilidade Extrema (valida pelo Banco de Dados)
         let customPrice = 0;
         const finalCustomizations = [];
 
         if (item.customizations && Array.isArray(item.customizations)) {
-          // Agrupa as customizações pelo nome do grupo a qual pertencem
-          // Ex: { "Escolha seus Sabores": ["Calabresa", "Mussarela"] }
           const groupedCustomizations = {};
           
           for (const opt of item.customizations) {
-            // Cada opt precisa informar a qual grupo ele pertence e seu nome
-            const groupName = opt.groupName;
-            if (!groupedCustomizations[groupName]) {
-              groupedCustomizations[groupName] = [];
+            // Descobre a qual grupo essa opção pertence dinamicamente
+            let foundGroupName = 'Diversos'; // Fallback
+            for (const g of product.attributeGroups) {
+               if (g.options.some(o => o.name === opt.name)) {
+                 foundGroupName = g.name;
+                 break;
+               }
             }
-            groupedCustomizations[groupName].push(opt);
+            if (!groupedCustomizations[foundGroupName]) {
+              groupedCustomizations[foundGroupName] = [];
+            }
+            groupedCustomizations[foundGroupName].push(opt);
           }
 
-          // Para cada grupo enviado, vamos calcular com base na regra definida no banco
+          // Para cada grupo detectado, aplicamos a pricing strategy do banco
           for (const [groupName, selectedOpts] of Object.entries(groupedCustomizations)) {
-            // Encontra o grupo no banco
             const groupDef = product.attributeGroups.find(g => g.name === groupName);
             
             if (groupDef) {
@@ -79,32 +96,24 @@ class OrderController {
               const groupSelections = [];
 
               for (const opt of selectedOpts) {
-                // Encontra a opção real dentro do grupo
                 const optionDef = groupDef.options.find(o => o.name === opt.name);
                 if (optionDef) {
                   pricesForGroup.push(optionDef.price);
                   groupSelections.push({
-                    groupName: groupDef.name,
                     name: optionDef.name,
                     price: optionDef.price // salva o preço real do banco
                   });
                 }
               }
 
-              // Aplica a estratégia de preço (pricingStrategy) do grupo: SUM, HIGHEST, AVERAGE
               let groupTotal = 0;
               if (pricesForGroup.length > 0) {
                 if (groupDef.pricingStrategy === 'HIGHEST') {
                   groupTotal = Math.max(...pricesForGroup);
                 } else if (groupDef.pricingStrategy === 'AVERAGE') {
                   const sum = pricesForGroup.reduce((a, b) => a + b, 0);
-                  groupTotal = sum / groupDef.maxOptions; // Ex para Proporcional/Média
-                  // Obs: usualmente pizza meia a meia proporcional divide pelas escolhas maxOptions ou length.
-                  // Se escolher 2 de maxOptions=2, divide por 2. 
-                  // Usaremos length para dividir o valor pelas quantias de escolhas atuais desse grupo.
                   groupTotal = sum / pricesForGroup.length; 
                 } else {
-                  // SUM (padrão)
                   groupTotal = pricesForGroup.reduce((a, b) => a + b, 0);
                 }
               }
@@ -123,21 +132,29 @@ class OrderController {
           name: product.name,
           price: currentItemPrice,
           quantity: item.quantity,
-          customizations: finalCustomizations // Array seguro, preços reais
+          customizations: finalCustomizations
         });
       }
+
+      const methodToUse = payment?.method || req.body.method || 'pix';
+      const addressToUse = delivery?.address || req.body.address;
 
       // 2. Criação do Registro Inicial
       newOrder = await Order.create({
         tenantId: finalTenantId,
         clientId,
+        customerName: customerName || 'Visitante',
         items: validatedItems,
         total: calculatedTotal,
         payment: { 
-          method, 
+          method: methodToUse, 
           status: 'pending' 
         },
-        delivery: { address }
+        delivery: { 
+          type: delivery?.type || 'delivery',
+          address: addressToUse,
+          reference: delivery?.reference || ''
+        }
       });
 
       // 3. Processamento via Strategy Pattern

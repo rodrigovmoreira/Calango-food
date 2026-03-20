@@ -13,7 +13,7 @@ export default function CartDrawer({
   cart, 
   removeFromCart, 
   total, 
-  tenantId, 
+  slug, 
   isStoreOpen,
   restaurantName
 }) {
@@ -52,16 +52,26 @@ export default function CartDrawer({
         productId: item._id,
         name: item.name,
         quantity: 1, // Considerando 1 por clique no MVP
-        price: item.price,
-        customizations: item.customizations || []
+        customizations: item.customizations ? item.customizations.map(c => ({
+          name: c.name,
+          extraPrice: c.price || c.extraPrice || 0
+        })) : [] // Mapeia exatamente a anatomia requerida (adicionais e bordas soltos)
       }));
 
       const payload = {
-        tenantId,
-        clientId: formData.phone.replace(/\D/g, ''), // Usamos apenas os números como clientId por simplicidade
+        slug: slug, // Prop enviada via MenuPages
+        clientId: formData.phone.replace(/\D/g, ''), // Formato internacional limpo (+55 opcional)
+        customerName: formData.name,
         items: itemsPayload,
-        method: 'pix', // Padrão
-        address: formData.address
+        payment: {
+          method: 'pix', 
+          cardHash: null 
+        },
+        delivery: {
+          type: 'delivery', 
+          address: formData.address,
+          reference: '' // Placeholder para o MVP
+        }
       };
 
       const response = await foodAPI.createOrder(payload);
