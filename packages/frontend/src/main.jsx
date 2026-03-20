@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import Products from './pages/Products';
 import Menu from './pages/Menu';
 import Entregadores from './pages/Entregadores';
+import MenuPages from './pages/MenuPages';
 
 // Lógica de Proteção
 const ProtectedRoute = ({ children }) => {
@@ -41,6 +42,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <Login />
               </PublicOnlyRoute>
             } />
+            
+            <Route path="/cardapio/:slug" element={<MenuPages />} />
 
             {/* Painel Administrativo Protegido */}
             <Route path="/kitchen" element={
