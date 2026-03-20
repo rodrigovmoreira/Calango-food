@@ -79,8 +79,10 @@ app.put('/api/products/:id', protect, productController.updateProduct);
 app.delete('/api/products/:id', protect, productController.deleteProduct);
 
 // Rotas de Categorias (por tenant)
+app.get('/api/categories/public/:tenantId', categoryController.getPublicCategories); // Pública (cardápio digital)
 app.get('/api/categories', protect, categoryController.getCategories);
 app.post('/api/categories', protect, categoryController.createCategory);
+app.put('/api/categories/reorder', protect, categoryController.reorderCategories);
 app.put('/api/categories/:id', protect, categoryController.updateCategory);
 app.delete('/api/categories/:id', protect, categoryController.deleteCategory);
 // Rotas de Loja / Tenant (Público)

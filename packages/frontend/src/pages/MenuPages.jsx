@@ -16,6 +16,7 @@ export default function MenuPage() {
   const { slug } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
+  const [categoryOrder, setCategoryOrder] = useState([]); // Ordem definida pelo lojista
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +39,12 @@ export default function MenuPage() {
         const { store, menuItems } = response.data;
         setRestaurant(store);
         setProducts(menuItems);
+
+        // Busca categorias públicas do tenant para respeitar a ordem definida pelo lojista
+        try {
+          const catResponse = await foodAPI.getPublicCategories(store.tenantId || store._id);
+          setCategoryOrder(catResponse.data.map(c => c.name));
+        } catch { /* Sem cats cadastradas, usa agrupamento simples */ }
         
         // Validação de horário em tempo real [cite: 24]
         setIsOpen(isStoreOpen(store.operatingHours));
@@ -95,8 +102,12 @@ export default function MenuPage() {
     </Center>
   );
 
-  // Agrupamento por categoria dinâmico (Universal para qualquer restaurante) 
-  const categories = [...new Set(products.map(p => p.category))];
+  // Agrupamento por categoria respeitando a ordem do lojista
+  const allCategoryNames = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const orderedCategories = [
+    ...categoryOrder.filter(c => allCategoryNames.includes(c)), // Categorias com ordem definida
+    ...allCategoryNames.filter(c => !categoryOrder.includes(c)), // Sem ordem: no final
+  ];
 
   return (
     <Box minH="100vh" bg="gray.100" pb="120px">
@@ -147,7 +158,7 @@ export default function MenuPage() {
           minH="50vh"
         >
           <VStack gap={10} align="stretch">
-            {categories.map((cat, index) => (
+            {orderedCategories.map((cat, index) => (
               <Box key={cat}>
                 <Heading 
                   size="xl" 
@@ -230,7 +241,7 @@ export default function MenuPage() {
               </Box>
             ))}
 
-            {categories.length === 0 && (
+            {orderedCategories.length === 0 && (
               <Center py={20}>
                 <Text color="gray.400" fontSize="lg">Nenhum produto cadastrado nesta loja.</Text>
               </Center>

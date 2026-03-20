@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box, Heading, Button, Flex, Text, Input, IconButton, Badge, VStack, Spinner, HStack
 } from '@chakra-ui/react';
@@ -15,6 +15,10 @@ export default function Categories() {
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Drag state (sem biblioteca externa)
+  const dragIndex = useRef(null);
+  const dragOverIndex = useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -36,7 +40,7 @@ export default function Categories() {
     if (!newName.trim()) return;
     try {
       setSaving(true);
-      await foodAPI.createCategory({ name: newName.trim() });
+      await foodAPI.createCategory({ name: newName.trim(), order: categories.length });
       setNewName('');
       await fetchCategories();
       toaster.create({ title: 'Criada!', description: `Categoria "${newName}" adicionada.`, type: 'success' });
@@ -78,13 +82,44 @@ export default function Categories() {
     }
   };
 
+  // --- Drag and Drop handlers ---
+  const handleDragStart = (index) => {
+    dragIndex.current = index;
+  };
+
+  const handleDragEnter = (index) => {
+    dragOverIndex.current = index;
+    // Reordena localmente para dar feedback visual imediato
+    if (dragIndex.current === null || dragIndex.current === index) return;
+    const updated = [...categories];
+    const [moved] = updated.splice(dragIndex.current, 1);
+    updated.splice(index, 0, moved);
+    dragIndex.current = index;
+    setCategories(updated);
+  };
+
+  const handleDragEnd = async () => {
+    dragIndex.current = null;
+    dragOverIndex.current = null;
+
+    // Persiste a nova ordem no banco via bulk update
+    const items = categories.map((cat, idx) => ({ id: cat._id, order: idx }));
+    try {
+      await foodAPI.reorderCategories(items);
+      toaster.create({ title: 'Ordem salva!', type: 'success', duration: 1500 });
+    } catch {
+      toaster.create({ title: 'Erro ao salvar ordem', type: 'error' });
+      fetchCategories(); // Reverte para o estado do banco
+    }
+  };
+
   return (
     <Sidebar>
       <Box p={8}>
         <Flex justify="space-between" align="center" mb={8}>
           <Box>
             <Heading size="xl" color="brand.500">Categorias do Cardápio</Heading>
-            <Text color="gray.500" mt={1}>Organize seus produtos em seções. Arraste para reordenar.</Text>
+            <Text color="gray.500" mt={1}>Arraste para definir a ordem de exibição no cardápio.</Text>
           </Box>
           <Badge colorPalette="brand" px={3} py={1} borderRadius="full" fontSize="sm">
             {categories.length} categoria{categories.length !== 1 ? 's' : ''}
@@ -110,7 +145,7 @@ export default function Categories() {
           </Flex>
         </Box>
 
-        {/* Lista de categorias */}
+        {/* Lista de categorias (Drag & Drop) */}
         <Box bg="white" borderRadius="2xl" shadow="sm" border="1px solid" borderColor="gray.100" overflow="hidden">
           {loading ? (
             <Flex justify="center" py={12}><Spinner color="brand.500" /></Flex>
@@ -121,14 +156,34 @@ export default function Categories() {
               <Text fontSize="sm">Crie sua primeira categoria acima!</Text>
             </Box>
           ) : (
-            <VStack align="stretch" gap={0} divideY="1px" divideColor="gray.100">
+            <VStack align="stretch" gap={0}>
               {categories.map((cat, idx) => (
-                <Flex key={cat._id} align="center" px={6} py={4} gap={4} _hover={{ bg: 'gray.50' }} transition="bg 0.15s">
-                  <GripVertical size={16} color="#CBD5E0" style={{ flexShrink: 0 }} />
-                  <Badge colorPalette="brand" variant="subtle" borderRadius="full" px={3} py={1} fontSize="xs">
+                <Flex
+                  key={cat._id}
+                  align="center"
+                  px={6}
+                  py={4}
+                  gap={4}
+                  borderBottom="1px solid"
+                  borderColor="gray.100"
+                  _last={{ borderBottom: 'none' }}
+                  _hover={{ bg: 'gray.50' }}
+                  transition="bg 0.15s, opacity 0.15s"
+                  draggable
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragEnter={() => handleDragEnter(idx)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  cursor="grab"
+                  userSelect="none"
+                >
+                  <Box color="gray.300" _hover={{ color: 'gray.500' }} cursor="grab" flexShrink={0}>
+                    <GripVertical size={20} />
+                  </Box>
+                  <Badge colorPalette="brand" variant="subtle" borderRadius="full" px={3} py={1} fontSize="xs" flexShrink={0}>
                     #{idx + 1}
                   </Badge>
-                  
+
                   {editingId === cat._id ? (
                     <Flex flex={1} gap={2} align="center">
                       <Input

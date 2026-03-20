@@ -47,6 +47,7 @@ export const foodAPI = {
   getPublicMenu: (slug) => api.get(`/api/store/menu/${slug}`),
 
   // 1. Cozinha e Pedidos
+  getPublicCategories: (tenantId) => api.get(`/api/categories/public/${tenantId}`),
   getOrders: (status) => api.get('/api/orders', { params: { status } }),
   updateOrderStatus: (id, status) => api.patch(`/api/orders/${id}/status`, { status }),
   dispatchOrder: (data) => api.post('/api/dispatch', data), // Integração com Logística
@@ -70,6 +71,7 @@ export const foodAPI = {
   getCategories: () => api.get('/api/categories'),
   createCategory: (data) => api.post('/api/categories', data),
   updateCategory: (id, data) => api.put(`/api/categories/${id}`, data),
+  reorderCategories: (items) => api.put('/api/categories/reorder', { items }),
   deleteCategory: (id) => api.delete(`/api/categories/${id}`),
 
   // 3. Configurações do Restaurante (WhatsApp & Tenant)

@@ -9,6 +9,16 @@ export const getCategories = async (req, res) => {
   }
 };
 
+export const getPublicCategories = async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const categories = await Category.find({ tenantId }).sort({ order: 1, name: 1 });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar categorias.' });
+  }
+};
+
 export const createCategory = async (req, res) => {
   try {
     const { name, order } = req.body;
@@ -39,6 +49,27 @@ export const updateCategory = async (req, res) => {
   }
 };
 
+export const reorderCategories = async (req, res) => {
+  try {
+    const { items } = req.body; // [{ id, order }, ...]
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Formato inválido. Esperado: { items: [{id, order}] }' });
+    }
+
+    const bulkOps = items.map(({ id, order }) => ({
+      updateOne: {
+        filter: { _id: id, tenantId: req.tenantId },
+        update: { $set: { order } }
+      }
+    }));
+
+    await Category.bulkWrite(bulkOps);
+    res.json({ message: 'Ordem atualizada com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao reordenar categorias.' });
+  }
+};
+
 export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
@@ -50,4 +81,4 @@ export const deleteCategory = async (req, res) => {
   }
 };
 
-export default { getCategories, createCategory, updateCategory, deleteCategory };
+export default { getCategories, getPublicCategories, createCategory, updateCategory, reorderCategories, deleteCategory };
