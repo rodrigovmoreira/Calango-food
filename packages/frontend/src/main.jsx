@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
 import Products from './pages/Products';
+import Categories from './pages/Categories';
 import Menu from './pages/Menu';
 import Entregadores from './pages/Entregadores';
 import MenuPages from './pages/MenuPages';
@@ -55,6 +56,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/products" element={
               <ProtectedRoute>
                 <Products />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/categories" element={
+              <ProtectedRoute>
+                <Categories />
               </ProtectedRoute>
             } />
 

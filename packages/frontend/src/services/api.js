@@ -66,6 +66,12 @@ export const foodAPI = {
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/api/products/${id}`),
 
+  // 2.5. Categorias
+  getCategories: () => api.get('/api/categories'),
+  createCategory: (data) => api.post('/api/categories', data),
+  updateCategory: (id, data) => api.put(`/api/categories/${id}`, data),
+  deleteCategory: (id) => api.delete(`/api/categories/${id}`),
+
   // 3. Configurações do Restaurante (WhatsApp & Tenant)
   getWhatsAppStatus: () => api.get('/api/whatsapp/status'),
   connectWhatsApp: () => api.post('/api/whatsapp/connect'),

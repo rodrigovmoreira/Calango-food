@@ -70,11 +70,19 @@ app.post('/api/orders', orderController.createOrder);
 
 // Rotas de Produtos
 import productController from './controllers/ProductController.js';
+import categoryController from './controllers/CategoryController.js';
+
 app.get('/api/products/public/:tenantId', productController.getPublicProducts);
 app.get('/api/products', protect, productController.getProducts);
 app.post('/api/products', protect, productController.createProduct);
 app.put('/api/products/:id', protect, productController.updateProduct);
 app.delete('/api/products/:id', protect, productController.deleteProduct);
+
+// Rotas de Categorias (por tenant)
+app.get('/api/categories', protect, categoryController.getCategories);
+app.post('/api/categories', protect, categoryController.createCategory);
+app.put('/api/categories/:id', protect, categoryController.updateCategory);
+app.delete('/api/categories/:id', protect, categoryController.deleteCategory);
 // Rotas de Loja / Tenant (Público)
 import * as authController from './controllers/authController.js';
 app.get('/api/store/public/:tenantId', authController.getPublicProfile);

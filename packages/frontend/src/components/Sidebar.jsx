@@ -1,5 +1,5 @@
 import { Box, VStack, Icon, Flex, Text, Button } from '@chakra-ui/react';
-import { Settings, LogOut, Utensils, Bike, ChefHat } from 'lucide-react';
+import { Settings, LogOut, Utensils, Bike, ChefHat, Tag } from 'lucide-react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -68,6 +68,7 @@ export default function Sidebar({ children }) {
           <NavItem icon={ChefHat} to="/kitchen">Cozinha</NavItem>
           <NavItem icon={Bike} to="/entregadores">Entregadores</NavItem>
           <NavItem icon={Utensils} to="/products">Cardápio (Pratos)</NavItem>
+          <NavItem icon={Tag} to="/categories">Categorias</NavItem>
           <NavItem icon={Settings} to="/settings">Configurações</NavItem>
           <NavItem icon={LogOut} onClick={handleLogout}>Sair</NavItem>
         </VStack>

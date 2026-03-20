@@ -15,6 +15,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   // Form State
   const [name, setName] = useState('');
@@ -27,6 +28,7 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -38,6 +40,13 @@ export default function Products() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await foodAPI.getCategories();
+      setCategories(data);
+    } catch {}
   };
 
   const handleOpenModal = (product = null) => {
@@ -176,7 +185,24 @@ export default function Products() {
                   </Flex>
 
                   <Field label="Categoria *">
-                    <Input placeholder="Ex: Pizzas, Bebidas, Sobremesas" value={category} onChange={(e) => setCategory(e.target.value)} bg="white" />
+                    <Flex wrap="wrap" gap={2} mb={3}>
+                      {categories.map(cat => (
+                        <Button
+                          key={cat._id}
+                          size="sm"
+                          variant={category === cat.name ? "solid" : "outline"}
+                          colorPalette={category === cat.name ? "brand" : "gray"}
+                          onClick={() => setCategory(cat.name)}
+                          borderRadius="full"
+                        >
+                          {cat.name}
+                        </Button>
+                      ))}
+                      {categories.length === 0 && (
+                        <Text fontSize="sm" color="gray.400" fontStyle="italic">Nenhuma categoria cadastrada. Crie em "Categorias" no menu lateral.</Text>
+                      )}
+                    </Flex>
+                    <Input placeholder="Ou digite o nome de uma categoria nova..." value={category} onChange={(e) => setCategory(e.target.value)} bg="white" />
                   </Field>
 
                   <Field label="URL da Imagem de Capa (Opcional)">
