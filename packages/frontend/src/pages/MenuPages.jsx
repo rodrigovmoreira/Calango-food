@@ -87,7 +87,9 @@ export default function MenuPage() {
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
         h={{ base: "180px", md: "260px" }} 
-        bgGradient={`linear(to-br, ${restaurant.primaryColor || '{colors.brand.700}'} 75%, {colors.brand.neon} 100%)`} 
+        bgGradient="to-br"
+        gradientFrom={restaurant.primaryColor || "brand.700"}
+        gradientTo="brand.neon"
         justify="center" 
         align="center"
         color="white"

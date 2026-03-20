@@ -13,11 +13,11 @@ export const isStoreOpen = (operatingHours) => {
   
   const todaySchedule = operatingHours.find(h => h.day === day);
   
-  // Se não houver horário cadastrado ou estiver marcado como fechado
-  if (!todaySchedule || !todaySchedule.open) return false;
+  // Se não houver horário cadastrado ou estiver marcado como inativo
+  if (!todaySchedule || !todaySchedule.isActive) return false;
 
-  const [openH, openM] = todaySchedule.start.split(':').map(Number);
-  const [closeH, closeM] = todaySchedule.end.split(':').map(Number);
+  const [openH, openM] = todaySchedule.openTime.split(':').map(Number);
+  const [closeH, closeM] = todaySchedule.closeTime.split(':').map(Number);
   
   const openTotalMinutes = openH * 60 + openM;
   const closeTotalMinutes = closeH * 60 + closeM;
