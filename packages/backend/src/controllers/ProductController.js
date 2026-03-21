@@ -12,6 +12,9 @@ const upload = multer({
 
 
 class ProductController {
+  constructor() {
+    this.uploadImage = this.uploadImage.bind(this);
+  }
   // Rota pública para listar produtos do cardápio de um restaurante específico
   async getPublicProducts(req, res) {
     try {
