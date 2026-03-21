@@ -75,6 +75,7 @@ import categoryController from './controllers/CategoryController.js';
 app.get('/api/products/public/:tenantId', productController.getPublicProducts);
 app.get('/api/products', protect, productController.getProducts);
 app.post('/api/products', protect, productController.createProduct);
+app.post('/api/products/upload', protect, productController.uploadImage);
 app.put('/api/products/:id', protect, productController.updateProduct);
 app.delete('/api/products/:id', protect, productController.deleteProduct);
 

@@ -6,7 +6,7 @@ import {
 import { Field } from '../components/ui/field';
 import { DialogRoot, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogCloseTrigger } from "../components/ui/dialog";
 import { Toaster, toaster } from "../components/ui/toaster";
-import { Edit2, Trash2, Plus, GripVertical } from 'lucide-react';
+import { Edit2, Trash2, Plus, GripVertical, UploadCloud } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { foodAPI } from '../services/api';
 
@@ -24,6 +24,7 @@ export default function Products() {
   const [category, setCategory] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [attributeGroups, setAttributeGroups] = useState([]);
 
   useEffect(() => {
@@ -107,6 +108,25 @@ export default function Products() {
     const newGroups = [...attributeGroups];
     newGroups[groupIndex].options = newGroups[groupIndex].options.filter((_, i) => i !== optionIndex);
     setAttributeGroups(newGroups);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    setUploading(true);
+
+    try {
+      const { data } = await foodAPI.uploadImage(formData);
+      setImageUrl(data.imageUrl);
+      toaster.create({ title: "Imagem carregada com sucesso", type: "success" });
+    } catch (err) {
+      toaster.create({ title: "Erro ao carregar imagem", description: err.message, type: "error" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -205,8 +225,37 @@ export default function Products() {
                     <Input placeholder="Ou digite o nome de uma categoria nova..." value={category} onChange={(e) => setCategory(e.target.value)} bg="white" />
                   </Field>
 
-                  <Field label="URL da Imagem de Capa (Opcional)">
-                    <Input placeholder="https://..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} bg="white" />
+                  <Field label="Imagem do Produto (Opcional)">
+                    <HStack gap={4} align="center">
+                      <Box flex={1}>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          display="none"
+                          id="image-upload"
+                          disabled={uploading}
+                        />
+                        <label htmlFor="image-upload">
+                          <Button
+                            as="span"
+                            variant="outline"
+                            w="full"
+                            justifyContent="flex-start"
+                            color="gray.600"
+                            loading={uploading}
+                          >
+                            <UploadCloud size={18} style={{ marginRight: '8px' }} />
+                            {uploading ? 'Enviando...' : (imageUrl ? 'Alterar Imagem' : 'Escolher Imagem')}
+                          </Button>
+                        </label>
+                      </Box>
+                      {imageUrl && (
+                        <Box w="60px" h="60px" borderRadius="md" overflow="hidden" flexShrink={0} border="1px solid" borderColor="gray.200">
+                          <img src={imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </Box>
+                      )}
+                    </HStack>
                   </Field>
 
                   <Field label="Descrição detalhada e atrativa (Opcional)">
