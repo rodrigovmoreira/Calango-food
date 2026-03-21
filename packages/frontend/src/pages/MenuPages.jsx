@@ -255,7 +255,7 @@ export default function MenuPage() {
       {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
       {cart.length > 0 && (
         <Box 
-          position="fixed" 
+          position="sticky"
           bottom={0} 
           left="0" 
           w="100%" 
