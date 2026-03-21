@@ -15,7 +15,13 @@ try {
     console.error('❌ ERRO FIREBASE: Arquivo firebase-credentials.json não encontrado em', credentialsPath);
   } else {
     // Inicializa o Firebase com o arquivo de credenciais local
-    const serviceAccount = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    } catch (parseError) {
+      console.error('❌ ERRO FIREBASE: O arquivo firebase-credentials.json não contém um JSON válido:', parseError.message);
+      throw parseError;
+    }
 
     if (!admin.apps.length) {
       admin.initializeApp({
@@ -37,7 +43,7 @@ try {
  * @param {String} tenantId - O ID do tenant logado
  * @returns {Promise<String>} - A URL pública da imagem
  */
-export const uploadImageToFirebase = async (file, tenantId) => {
+export const uploadImage = async (file, tenantId) => {
   if (!bucket) {
     throw new Error('Firebase Storage não foi inicializado corretamente. Verifique as credenciais.');
   }
