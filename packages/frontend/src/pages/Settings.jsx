@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Heading, Box, Text, VStack, HStack, Icon, Image, Badge, Spinner, Tabs, Input, Switch, Flex } from '@chakra-ui/react';
+import { Heading, Box, Text, VStack, HStack, Icon, Image, Badge, Spinner, Tabs, Input, Switch, Flex, Stack } from '@chakra-ui/react';
 import { Button } from "../components/ui/button";
 import { Toaster, toaster } from "../components/ui/toaster";
 import { FaWhatsapp, FaCheckCircle, FaExclamationTriangle, FaStore, FaClock } from 'react-icons/fa';
@@ -102,9 +102,10 @@ export default function Settings() {
                       </Text>
                     </Box>
 
-                    <Flex
+                    <Stack
+                      direction={{ base: "column", sm: "row" }}
                       justify="space-between"
-                      align="center"
+                      align={{ base: "start", sm: "center" }}
                       p={4}
                       bg={isOpen ? "green.50" : "red.50"}
                       borderRadius="md"
@@ -127,7 +128,7 @@ export default function Settings() {
                         <Switch.HiddenInput />
                         <Switch.Control><Switch.Thumb /></Switch.Control>
                       </Switch.Root>
-                    </Flex>
+                    </Stack>
                   </VStack>
                 </Box>
 
@@ -135,7 +136,7 @@ export default function Settings() {
                   <Heading size="md" mb={6}>Horário de Funcionamento</Heading>
                   <VStack align="stretch" gap={4}>
                     {operatingHours.map((schedule, index) => (
-                      <Flex key={schedule.day} justify="space-between" align="center" p={3} bg="gray.50" borderRadius="md" opacity={schedule.isActive ? 1 : 0.6}>
+                      <Stack direction={{ base: "column", md: "row" }} key={schedule.day} justify="space-between" align={{ base: "start", md: "center" }} p={3} bg="gray.50" borderRadius="md" opacity={schedule.isActive ? 1 : 0.6}>
                         <Flex gap={4} align="center" w="150px">
                           <Switch.Root checked={schedule.isActive} onChange={() => handleDayToggle(index)} colorPalette="brand">
                             <Switch.HiddenInput />
@@ -144,7 +145,7 @@ export default function Settings() {
                           <Text fontWeight={schedule.isActive ? "bold" : "normal"}>{DAYS_OF_WEEK[schedule.day]}</Text>
                         </Flex>
 
-                        <Flex gap={4} align="center" flex={1} justify="flex-end" display={schedule.isActive ? "flex" : "none"}>
+                        <Flex gap={{ base: 2, md: 4 }} align="center" flex={1} justify={{ base: "flex-start", md: "flex-end" }} w="full" display={schedule.isActive ? "flex" : "none"}>
                           <Input type="time" w="130px" value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
                           <Text>até</Text>
                           <Input type="time" w="130px" value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
@@ -153,7 +154,7 @@ export default function Settings() {
                         {!schedule.isActive && (
                           <Text color="red.500" fontSize="sm" fontStyle="italic" w="full" textAlign="right">Fechado</Text>
                         )}
-                      </Flex>
+                      </Stack>
                     ))}
                   </VStack>
                   <Button mt={8} colorPalette="brand" size="lg" w="full" onClick={saveSettings}>Salvar Alterações</Button>
