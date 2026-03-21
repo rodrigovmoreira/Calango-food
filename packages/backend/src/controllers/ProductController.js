@@ -1,6 +1,6 @@
 import Product from '../models/Product.js';
 import multer from 'multer';
-import { bucket } from '../config/firebase.js';
+import { uploadImageToFirebase } from '../services/upload.js';
 
 // Setup multer logic using memory storage for Firebase upload
 const upload = multer({
