@@ -10,11 +10,23 @@ Seleção de Itens: Implementar a lógica de "Meio a Meio" e "Adicionais" (Borda
 
 Carrinho Inteligente: Validação de horário de funcionamento antes de permitir o fechamento do pedido.
 
-### 1.1. O que deve ser feito para testar 🧪
+### 1.1. O que deve ser feito para testar o início do pedido
 Precisamos de um cardápio de teste para testar o cardápio público.
 O usuário deve ser capaz de adicionar itens ao carrinho, fechar o pedido e receber uma confirmação no WhatsApp.
 
 O usuário pode fazer um pedido sem login, mas deve informar o telefone para contato.
+
+### 1.2. A Sacola de compras
+Precisamos fazer a continuidade do processo. Quando o cliente faz o pedido, ele tem a sacola montada, agora ele precisa ver todos os produtos, confirmar que estão corretos e deve cadastrar o endereço.
+
+Temos que criar um componente para mostrar os produtos da sacola e um componente para mostrar o formulário de entrega. Nesse ponto podemos perguntar o celular dele. Se já existir no nosso banco, podemos mostrar um banner para ele confirmar se está correto. Se não existir, podemos mostrar um formulário para ele cadastrar o celular.
+
+Já poderemos calcular o valor do frete e mostrar o valor total do pedido. Além disso, o cliente deve escolher a forma de pagamento.
+
+O cliente vai cadastrar um número de telefone de contato e informar o endereço de recebimento.
+Nós já podemos guardar esses dados do cliente, para que ele não precise cadastrar novamente em um futuro próximo.
+
+
 
 ### 👀 Observações do Pilar 1
 Pode ser necessário criar um ambiente do cliente em um futuro próximo, para ele ter opção de ver os pedidos realizados e o status de cada um.
