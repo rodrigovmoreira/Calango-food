@@ -62,6 +62,9 @@ export const foodAPI = {
   getPublicProducts: (tenantId) => api.get(`/api/products/public/${tenantId}`),
   getProducts: () => api.get('/api/products'),
   createProduct: (data) => api.post('/api/products', data),
+  uploadImage: (formData) => api.post('/api/products/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 
   createOrder: (data) => api.post('/api/orders', data),
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
