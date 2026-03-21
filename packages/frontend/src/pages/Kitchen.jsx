@@ -1,4 +1,4 @@
-import { Box, SimpleGrid, Card, Heading, Text, Badge, VStack, HStack, Flex } from '@chakra-ui/react';
+import { Box, SimpleGrid, Card, Heading, Text, Badge, VStack, HStack, Flex, Stack } from '@chakra-ui/react';
 import { Toaster, toaster } from "../components/ui/toaster";
 import { Button } from "../components/ui/button";
 import { Bike } from 'lucide-react';
@@ -71,7 +71,7 @@ export default function Kitchen() {
   return (
     <Sidebar>
       <Box p={{ base: 4, md: 8 }}>
-        <Flex justify="space-between" align="center" mb={8} wrap="wrap" gap={4}>
+        <Stack direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "stretch", md: "center" }} mb={8} gap={4}>
           <Heading size="xl" color="brand.500">Cozinha Digital</Heading>
 
           <Card.Root variant="elevated" size="sm" bg="white">
@@ -89,7 +89,7 @@ export default function Kitchen() {
               </HStack>
             </Card.Body>
           </Card.Root>
-        </Flex>
+        </Stack>
 
         {loading ? (
           <Text>Carregando pedidos...</Text>

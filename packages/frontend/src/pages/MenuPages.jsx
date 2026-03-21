@@ -1,5 +1,5 @@
 // packages/frontend/src/pages/MenuPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Box, Flex, Heading, Text, VStack, SimpleGrid, Container, 
   Badge, Button, Image, Icon, HStack, Spinner, Center
@@ -87,7 +87,16 @@ export default function MenuPage() {
     setIsProductModalOpen(true);
   };
 
-  const totalCart = cart.reduce((acc, item) => acc + item.price, 0);
+  const totalCart = useMemo(() => cart.reduce((acc, item) => acc + item.price, 0), [cart]);
+
+  // Agrupamento por categoria respeitando a ordem do lojista
+  const orderedCategories = useMemo(() => {
+    const allCategoryNames = [...new Set(products.map(p => p.category).filter(Boolean))];
+    return [
+      ...categoryOrder.filter(c => allCategoryNames.includes(c)), // Categorias com ordem definida
+      ...allCategoryNames.filter(c => !categoryOrder.includes(c)), // Sem ordem: no final
+    ];
+  }, [products, categoryOrder]);
 
   if (loading) return (
     <Center h="100vh"><Spinner size="xl" color="brand.500" /></Center>
@@ -101,13 +110,6 @@ export default function MenuPage() {
       </VStack>
     </Center>
   );
-
-  // Agrupamento por categoria respeitando a ordem do lojista
-  const allCategoryNames = [...new Set(products.map(p => p.category).filter(Boolean))];
-  const orderedCategories = [
-    ...categoryOrder.filter(c => allCategoryNames.includes(c)), // Categorias com ordem definida
-    ...allCategoryNames.filter(c => !categoryOrder.includes(c)), // Sem ordem: no final
-  ];
 
   return (
     <Box minH="100vh" bg="gray.100" pb="120px">
@@ -195,7 +197,7 @@ export default function MenuPage() {
                       position="relative"
                       overflow="hidden"
                     >
-                      <VStack align="start" gap={1} flex={1}>
+                      <VStack align="start" gap={1} flex={1} minW={0}>
                         <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight">
                           {product.name}
                         </Text>
@@ -207,7 +209,7 @@ export default function MenuPage() {
                         </Text>
                       </VStack>
                       
-                      <VStack align="end" gap={3}>
+                      <VStack align="end" gap={3} flexShrink={0}>
                         {product.imageUrl && (
                           <Image 
                             src={product.imageUrl} 
@@ -253,7 +255,7 @@ export default function MenuPage() {
       {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
       {cart.length > 0 && (
         <Box 
-          position="fixed" 
+          position="sticky"
           bottom={0} 
           left="0" 
           w="100%" 
