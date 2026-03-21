@@ -45,3 +45,6 @@ temp/
 
 .wwebjs_auth
 .wwebjs_cache
+
+# Firebase
+firebase-credentials.json
