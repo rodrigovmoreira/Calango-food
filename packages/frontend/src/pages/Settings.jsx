@@ -89,6 +89,7 @@ export default function Settings() {
                     <Box>
                       <Text fontWeight="bold" mb={2}>Nome da Loja</Text>
                       <Input
+                        size="lg"
                         value={storeName}
                         onChange={(e) => setStoreName(e.target.value)}
                         placeholder="Ex: Calango Food Delivery"
@@ -145,10 +146,10 @@ export default function Settings() {
                           <Text fontWeight={schedule.isActive ? "bold" : "normal"}>{DAYS_OF_WEEK[schedule.day]}</Text>
                         </Flex>
 
-                        <Flex gap={{ base: 2, md: 4 }} align="center" flex={1} justify={{ base: "flex-start", md: "flex-end" }} w="full" display={schedule.isActive ? "flex" : "none"}>
-                          <Input type="time" w="130px" value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
+                        <Flex gap={{ base: 2, md: 4 }} align="center" direction={{ base: "column", md: "row" }} flex={1} justify={{ base: "flex-start", md: "flex-end" }} w="full" display={schedule.isActive ? "flex" : "none"}>
+                          <Input type="time" size="lg" w={{ base: "full", md: "130px" }} value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
                           <Text>até</Text>
-                          <Input type="time" w="130px" value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
+                          <Input type="time" size="lg" w={{ base: "full", md: "130px" }} value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
                         </Flex>
 
                         {!schedule.isActive && (

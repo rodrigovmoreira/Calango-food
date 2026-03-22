@@ -97,7 +97,7 @@ export default function Kitchen() {
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
             {orders.map(order => (
               <Card.Root key={order._id} variant="outline" boxShadow="md">
-                <Card.Header display="flex" justifyContent="space-between" flexDirection="row" alignItems="center">
+                <Card.Header display="flex" justifyContent="space-between" flexDirection={{ base: "column", sm: "row" }} alignItems={{ base: "flex-start", sm: "center" }} gap={2}>
                   <Heading size="md">Pedido #{order._id.slice(-4)}</Heading>
                   <Badge colorPalette="orange" variant="solid">Preparando</Badge>
                 </Card.Header>
@@ -107,13 +107,13 @@ export default function Kitchen() {
                     {/* Usando Box como container para evitar erro de aninhamento de <p> */}
                     <Box pb={2} borderBottomWidth="1px">
                       <Text fontWeight="bold" fontSize="sm" color="gray.600">ENTREGAR EM:</Text>
-                      <Text fontSize="md">{order.delivery.address}</Text>
+                      <Text fontSize="md" overflowWrap="break-word" wordBreak="break-word">{order.delivery.address}</Text>
                     </Box>
 
                     <Box>
                       <Text fontWeight="bold" fontSize="sm" color="gray.600" mb={1}>ITENS:</Text>
                       {order.items.map((item, idx) => (
-                        <Text key={`${order._id}-item-${idx}`} fontSize="sm">
+                        <Text key={`${order._id}-item-${idx}`} fontSize="sm" overflowWrap="break-word" wordBreak="break-word">
                           <Box as="span" fontWeight="bold" color="brand.500">{item.quantity}x</Box> {item.name}
                         </Text>
                       ))}
