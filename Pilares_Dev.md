@@ -86,7 +86,7 @@
 - [x] Bloqueio de interação quando a loja está fechada
 - [x] Header dinâmico com nome do restaurante, logo e indicador aberto/fechado
 - [ ] Aplicar cores do branding do tenant (cabeçalho, botões) — depende de 0.3
-- [ ] Barra de busca / filtro por nome de produto
+- [X] Barra de busca / filtro por nome de produto
 - [ ] Navegação por categorias (âncoras ou abas laterais em scroll)
 
 ### 1.2. Seleção de Itens (`ProductModal.jsx`)
