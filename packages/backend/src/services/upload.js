@@ -2,17 +2,22 @@ import admin from 'firebase-admin';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
+// Carrega as variáveis de ambiente ANTES de qualquer acesso a process.env
+// Necessário porque imports de ES Modules são hoisted e executam antes do dotenv.config() em index.js
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 let bucket;
 
 try {
-  const credentialsPath = path.resolve(__dirname, '../../firebase-credentials.json');
+  // 1. Resolve o caminho a partir da raiz da pasta onde o processo está rodando (backend)
+  const credentialsPath = path.resolve(process.cwd(), 'firebase-credentials.json');
 
   if (!fs.existsSync(credentialsPath)) {
-    console.error('❌ ERRO FIREBASE: Arquivo firebase-credentials.json não encontrado em', credentialsPath);
+    console.error('❌ ERRO FIREBASE: Arquivo firebase-credentials.json não encontrado em:', credentialsPath);
   } else {
     // Inicializa o Firebase com o arquivo de credenciais local
     let serviceAccount;
@@ -26,12 +31,13 @@ try {
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        storageBucket: process.env.FIREBASE_BUCKET_URL || 'calango-food.appspot.com'
+        // Remove prefixos gs:// caso existam no .env para evitar erro 404
+        storageBucket: (process.env.FIREBASE_BUCKET_URL || 'calango-chatbot.firebasestorage.app').replace('gs://', '')
       });
     }
 
     bucket = admin.storage().bucket();
-    console.log('✅ Firebase Storage inicializado com sucesso.');
+    console.log('✅ Firebase Storage inicializado com sucesso. Bucket:', bucket.name);
   }
 } catch (error) {
   console.error('❌ ERRO FATAL ao inicializar o Firebase Admin SDK:', error.message);
@@ -48,8 +54,15 @@ export const uploadImage = async (file, tenantId) => {
     throw new Error('Firebase Storage não foi inicializado corretamente. Verifique as credenciais.');
   }
 
+  // Sanitização do nome do arquivo (Remove acentos e espaços)
+  const sanitizedOriginalName = file.originalname
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^a-zA-Z0-9.]/g, '_'); // Troca qualquer caracter especial por underscore
+
+  const fileName = `products/${tenantId}/${Date.now()}_${sanitizedOriginalName}`;
+
   return new Promise((resolve, reject) => {
-    const fileName = `products/${tenantId}/${Date.now()}_${file.originalname.replace(/\s/g, '_')}`;
     const fileUpload = bucket.file(fileName);
 
     const blobStream = fileUpload.createWriteStream({
@@ -65,14 +78,14 @@ export const uploadImage = async (file, tenantId) => {
 
     blobStream.on('finish', async () => {
       try {
-        // Torna o arquivo público para poder gerar uma URL direta
-        await fileUpload.makePublic();
-
-        // URL pública baseada no template padrão do Firebase Storage
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-        resolve(publicUrl);
+        // Gera uma Signed URL com validade longa (5 anos)
+        const [signedUrl] = await fileUpload.getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 5 * 365 * 24 * 60 * 60 * 1000,
+        });
+        resolve(signedUrl);
       } catch (err) {
-         console.error('Erro ao tornar arquivo público:', err);
+         console.error('Erro ao gerar URL assinada:', err);
          reject(err);
       }
     });
