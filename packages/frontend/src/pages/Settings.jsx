@@ -92,6 +92,7 @@ export default function Settings() {
                         value={storeName}
                         onChange={(e) => setStoreName(e.target.value)}
                         placeholder="Ex: Calango Food Delivery"
+                        h="48px"
                       />
                       {/* FEEDBACK DO LINK AMIGÁVEL */}
                       <Text fontSize="xs" mt={2} color="gray.500">
@@ -103,9 +104,9 @@ export default function Settings() {
                     </Box>
 
                     <Stack
-                      direction={{ base: "column", sm: "row" }}
+                      direction={{ base: "column", md: "row" }}
                       justify="space-between"
-                      align={{ base: "start", sm: "center" }}
+                      align={{ base: "start", md: "center" }}
                       p={4}
                       bg={isOpen ? "green.50" : "red.50"}
                       borderRadius="md"
@@ -137,7 +138,7 @@ export default function Settings() {
                   <VStack align="stretch" gap={4}>
                     {operatingHours.map((schedule, index) => (
                       <Stack direction={{ base: "column", md: "row" }} key={schedule.day} justify="space-between" align={{ base: "start", md: "center" }} p={3} bg="gray.50" borderRadius="md" opacity={schedule.isActive ? 1 : 0.6}>
-                        <Flex gap={4} align="center" w="150px">
+                        <Flex gap={4} align="center" w={{ base: "auto", md: "150px" }}>
                           <Switch.Root checked={schedule.isActive} onChange={() => handleDayToggle(index)} colorPalette="brand">
                             <Switch.HiddenInput />
                             <Switch.Control><Switch.Thumb /></Switch.Control>
@@ -145,10 +146,12 @@ export default function Settings() {
                           <Text fontWeight={schedule.isActive ? "bold" : "normal"}>{DAYS_OF_WEEK[schedule.day]}</Text>
                         </Flex>
 
-                        <Flex gap={{ base: 2, md: 4 }} align="center" flex={1} justify={{ base: "flex-start", md: "flex-end" }} w="full" display={schedule.isActive ? "flex" : "none"}>
-                          <Input type="time" w="130px" value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
-                          <Text>até</Text>
-                          <Input type="time" w="130px" value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
+                        <Flex gap={{ base: 2, md: 4 }} direction={{ base: "column", md: "row" }} align={{ base: "stretch", md: "center" }} flex={1} justify={{ base: "flex-start", md: "flex-end" }} w="full" display={schedule.isActive ? "flex" : "none"}>
+                          <Flex gap={2} align="center" w="full" justify={{ base: "space-between", md: "flex-end" }}>
+                            <Input type="time" h="48px" w={{ base: "full", md: "130px" }} value={schedule.openTime} onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)} bg="white" />
+                            <Text mx={{ base: 2, md: 0 }}>até</Text>
+                            <Input type="time" h="48px" w={{ base: "full", md: "130px" }} value={schedule.closeTime} onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)} bg="white" />
+                          </Flex>
                         </Flex>
 
                         {!schedule.isActive && (

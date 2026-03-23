@@ -141,7 +141,8 @@ describe('MenuPage (Cardápio Público)', () => {
     renderMenuPage();
 
     await waitFor(() => {
-      const addButtons = screen.getAllByText('ADICIONAR');
+      // O texto atual do botão é 'Adicionar', ignorando o case 'ADICIONAR'
+      const addButtons = screen.getAllByText(/adicionar/i);
       expect(addButtons.length).toBe(mockProducts.length);
     });
   });

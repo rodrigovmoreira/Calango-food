@@ -198,10 +198,10 @@ export default function MenuPage() {
                       overflow="hidden"
                     >
                       <VStack align="start" gap={1} flex={1} minW={0}>
-                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight">
+                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight" wordBreak="break-word">
                           {product.name}
                         </Text>
-                        <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
+                        <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2} wordBreak="break-word">
                           {product.description}
                         </Text>
                         <Text color="brand.600" fontWeight="900" fontSize="lg">
@@ -209,11 +209,12 @@ export default function MenuPage() {
                         </Text>
                       </VStack>
                       
-                      <VStack align="end" gap={3} flexShrink={0}>
+                      <VStack align="end" gap={3} flexShrink={0} maxW="40%">
                         {product.imageUrl && (
                           <Image 
                             src={product.imageUrl} 
                             boxSize={{ base: "90px", md: "110px" }} 
+                            maxW="100%"
                             objectFit="cover" 
                             borderRadius="xl" 
                             boxShadow="md"
@@ -252,12 +253,13 @@ export default function MenuPage() {
         </Box>
       </Container>
 
-      {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
+      {/* FOOTER DA SACOLA (FIXED) COM GLASSMORPHISM */}
       {cart.length > 0 && (
         <Box 
-          position="sticky"
+          position="fixed"
           bottom={0} 
-          left="0" 
+          left={0}
+          right={0}
           w="100%" 
           px={4} 
           py={6}
