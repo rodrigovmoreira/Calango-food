@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Box, Flex, Heading, Text, VStack, SimpleGrid, Container, 
-  Badge, Button, Image, Icon, HStack, Spinner, Center
+  Badge, Button, Image, Icon, HStack, Spinner, Center, Input
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { FaShoppingBasket, FaClock, FaExclamationCircle } from 'react-icons/fa';
@@ -16,6 +16,7 @@ export default function MenuPage() {
   const { slug } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [categoryOrder, setCategoryOrder] = useState([]); // Ordem definida pelo lojista
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,9 +25,9 @@ export default function MenuPage() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const removeFromCart = (cartId) => {
+  const removeFromCart = React.useCallback((cartId) => {
     setCart(prev => prev.filter(item => item.cartId !== cartId));
-  };
+  }, []);
 
   // 1. BUSCA DE DADOS REAIS DO BACKEND 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function MenuPage() {
     if (slug) fetchMenu();
   }, [slug]);
 
-  const addToCart = (product) => {
+  const addToCart = React.useCallback((product) => {
     if (!isOpen) {
       toaster.create({
         title: "Loja Fechada",
@@ -72,9 +73,9 @@ export default function MenuPage() {
       return;
     }
     setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
-  };
+  }, [isOpen]);
 
-  const openProductModal = (product) => {
+  const openProductModal = React.useCallback((product) => {
     if (!isOpen) {
       toaster.create({
         title: "Loja Fechada",
@@ -85,18 +86,23 @@ export default function MenuPage() {
     }
     setSelectedProduct(product);
     setIsProductModalOpen(true);
-  };
+  }, [isOpen]);
 
   const totalCart = useMemo(() => cart.reduce((acc, item) => acc + item.price, 0), [cart]);
 
   // Agrupamento por categoria respeitando a ordem do lojista
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [products, searchTerm]);
+
   const orderedCategories = useMemo(() => {
-    const allCategoryNames = [...new Set(products.map(p => p.category).filter(Boolean))];
+    const allCategoryNames = [...new Set(filteredProducts.map(p => p.category).filter(Boolean))];
     return [
       ...categoryOrder.filter(c => allCategoryNames.includes(c)), // Categorias com ordem definida
       ...allCategoryNames.filter(c => !categoryOrder.includes(c)), // Sem ordem: no final
     ];
-  }, [products, categoryOrder]);
+  }, [filteredProducts, categoryOrder]);
 
   if (loading) return (
     <Center h="100vh"><Spinner size="xl" color="brand.500" /></Center>
@@ -160,6 +166,16 @@ export default function MenuPage() {
           minH="50vh"
         >
           <VStack gap={10} align="stretch">
+            {/* BARRA DE BUSCA */}
+            <Input
+              size="lg"
+              placeholder="Buscar produtos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              bg="gray.50"
+              borderRadius="xl"
+              boxShadow="sm"
+            />
             {orderedCategories.map((cat, index) => (
               <Box key={cat}>
                 <Heading 
@@ -174,7 +190,7 @@ export default function MenuPage() {
                 </Heading>
                 
                 <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-                  {products.filter(p => p.category === cat).map(product => (
+                  {filteredProducts.filter(p => p.category === cat).map(product => (
                     <Flex 
                       key={product._id} 
                       p={5} 
@@ -214,6 +230,7 @@ export default function MenuPage() {
                           <Image 
                             src={product.imageUrl} 
                             boxSize={{ base: "90px", md: "110px" }} 
+                            maxW="100%"
                             objectFit="cover" 
                             borderRadius="xl" 
                             boxShadow="md"
@@ -255,7 +272,7 @@ export default function MenuPage() {
       {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
       {cart.length > 0 && (
         <Box 
-          position="sticky"
+          position="fixed"
           bottom={0} 
           left="0" 
           w="100%" 
