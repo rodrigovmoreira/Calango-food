@@ -25,6 +25,12 @@ const OrderSchema = new mongoose.Schema({
   delivery: {
     type: { type: String, enum: ['delivery', 'pickup'], default: 'delivery' },
     address: { type: String, required: true },
+    cep: { type: String },
+    number: { type: String },
+    complement: { type: String },
+    neighborhood: { type: String },
+    city: { type: String },
+    state: { type: String },
     reference: { type: String },
     status: { type: String, default: 'awaiting_payment' }
   },

@@ -67,7 +67,7 @@ class OrderController {
 
         let currentItemPrice = product.price;
         let customPrice = 0;
-        let hasReplacementStrategy = false; // Flag para produtos onde a variação DITA o preço (ex: Pizza Gigante)
+        let hasReplacementStrategy = false; // Flag para produtos onde a variação DITA o preço
         const finalCustomizations = [];
 
         if (item.customizations && Array.isArray(item.customizations)) {
@@ -126,7 +126,7 @@ class OrderController {
           }
         }
 
-        // Se encontrou alguma estratégia que substitua o preço (ex: Pizza Meio a Meio), zera o base.
+        // Se encontrou alguma estratégia que substitua o preço.
         if (hasReplacementStrategy) {
           currentItemPrice = 0; 
         }
@@ -160,6 +160,12 @@ class OrderController {
         delivery: { 
           type: delivery?.type || 'delivery',
           address: addressToUse,
+          cep: delivery?.cep || '',
+          number: delivery?.number || '',
+          complement: delivery?.complement || '',
+          neighborhood: delivery?.neighborhood || '',
+          city: delivery?.city || '',
+          state: delivery?.state || '',
           reference: delivery?.reference || ''
         }
       });
