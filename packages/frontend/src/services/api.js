@@ -67,6 +67,7 @@ export const foodAPI = {
   }),
 
   createOrder: (data) => api.post('/api/orders', data),
+  getOrderStatus: (orderId) => api.get(`/api/orders/${orderId}/status`),
   updateProduct: (id, data) => api.put(`/api/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/api/products/${id}`),
 

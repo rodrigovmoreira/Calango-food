@@ -13,6 +13,8 @@ import Categories from './pages/Categories';
 import Menu from './pages/Menu';
 import Entregadores from './pages/Entregadores';
 import MenuPages from './pages/MenuPages';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderStatusPage from './pages/OrderStatusPage';
 
 // Lógica de Proteção
 const ProtectedRoute = ({ children }) => {
@@ -45,6 +47,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             } />
             
             <Route path="/cardapio/:slug" element={<MenuPages />} />
+            <Route path="/checkout/:slug" element={<CheckoutPage />} />
+            <Route path="/pedido/:orderId" element={<OrderStatusPage />} />
 
             {/* Painel Administrativo Protegido */}
             <Route path="/kitchen" element={

@@ -171,7 +171,7 @@ class OrderController {
       });
 
       // 3. Processamento via Strategy Pattern
-      const processor = PaymentFactory.create(method);
+      const processor = PaymentFactory.create(methodToUse);
       const paymentResult = await processor.process(calculatedTotal, newOrder._id);
 
       if (!paymentResult.success) {
@@ -223,6 +223,40 @@ class OrderController {
         error: "Falha ao processar pedido", 
         details: error.message 
       });
+    }
+  }
+
+  // Rota pública para o cliente acompanhar o pedido
+  async getOrderStatus(req, res) {
+    try {
+      const order = await Order.findById(req.params.id)
+        .select('items total payment delivery history customerName createdAt');
+      
+      if (!order) {
+        return res.status(404).json({ error: 'Pedido não encontrado.' });
+      }
+
+      // Determina o status atual baseado no último histórico
+      const currentStatus = order.history.length > 0 
+        ? order.history[order.history.length - 1].status 
+        : order.payment.status === 'paid' ? 'preparing' : 'pending';
+
+      res.json({
+        orderId: order._id,
+        customerName: order.customerName,
+        items: order.items,
+        total: order.total,
+        payment: {
+          method: order.payment.method,
+          status: order.payment.status
+        },
+        delivery: order.delivery,
+        currentStatus,
+        history: order.history,
+        createdAt: order.createdAt
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao buscar status do pedido.', details: error.message });
     }
   }
 }
