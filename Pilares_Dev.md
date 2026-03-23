@@ -55,7 +55,7 @@
 - [x] CRUD de produtos na `Products.jsx` (admin)
 - [x] Formulário completo: nome, descrição, preço, categoria, imagem, disponibilidade
 - [x] Grupos de atributos com `SUM`, `HIGHEST`, `AVERAGE` (estratégia de preço)
-- [ ] Upload real de imagem de produto (hoje `imageUrl` é string manual)
+- [x] Upload real de imagem de produto (hoje `imageUrl` é string manual)
 - [ ] Preview do produto como o cliente verá (miniatura do card público no admin)
 
 ### 0.3. Configuração da Loja

@@ -93,29 +93,25 @@ export const updateProfile = async (req, res) => {
   try {
     const { storeName, isOpen, operatingHours } = req.body;
     
-    // 1. Buscamos o usuário pelo tenantId (id do logado)
-    const user = await SystemUser.findById(req.tenantId);
+    // PONTO DE CORREÇÃO 1: Use req.user._id ou req.tenantId (garanta que venha do middleware)
+    const userId = req.user?._id || req.tenantId; 
+
+    // PONTO DE CORREÇÃO 2: Troque findByIdAndUpdate por este bloco para debugar:
+    const user = await SystemUser.findById(userId);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
-    // 2. Atualizamos os campos manualmente para disparar o middleware 'save'
-    if (storeName !== undefined) user.storeName = storeName;
+    if (storeName) user.storeName = storeName;
     if (isOpen !== undefined) user.isOpen = isOpen;
-    if (operatingHours !== undefined) user.operatingHours = operatingHours;
+    if (operatingHours) user.operatingHours = operatingHours;
 
-    // 3. Ao salvar, o slug será gerado automaticamente pelo middleware no Model
-    await user.save();
-    
-    res.json({
-      id: user._id, 
-      name: user.name, 
-      email: user.email,
-      storeName: user.storeName, 
-      slug: user.slug, // Retornamos o slug para o front usar
-      isOpen: user.isOpen, 
-      operatingHours: user.operatingHours
-    });
+    // Isso vai disparar o middleware de SLUG que criamos no SystemUser.js
+    await user.save(); 
+
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    // PONTO DE CORREÇÃO 3: Mude o log para ver o erro real no seu terminal
+    console.error("ERRO NO UPDATE PROFILE:", err); 
+    res.status(500).json({ message: "Erro interno", error: err.message });
   }
 };
 
