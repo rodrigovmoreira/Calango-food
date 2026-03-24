@@ -22,7 +22,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 const app = express();
 const httpServer = createServer(app); // Cria o server HTTP
 const io = new Server(httpServer, {
-  cors: { origin: "http://localhost:5173" } // Permite o Vite
+  cors: { origin: "*" } // Permite o Vite
 });
 const PORT = process.env.PORT || 3002;
 
@@ -101,6 +101,6 @@ app.post('/api/whatsapp/connect', protect, async (req, res) => {
 });
 
 // 6. Inicialização do Servidor
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Calango-food rodando em http://localhost:${PORT}`);
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Calango-food rodando em http://192.168.0.167:${PORT}`);
 });     
