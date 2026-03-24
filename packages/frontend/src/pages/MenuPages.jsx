@@ -169,6 +169,7 @@ export default function MenuPage() {
             {/* BARRA DE BUSCA */}
             <Input
               size="lg"
+              h="56px"
               placeholder="Buscar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -230,7 +231,7 @@ export default function MenuPage() {
                           <Image 
                             src={product.imageUrl} 
                             boxSize={{ base: "90px", md: "110px" }} 
-                            maxW="100%"
+                            flexShrink={0}
                             objectFit="cover" 
                             borderRadius="xl" 
                             boxShadow="md"
@@ -277,10 +278,12 @@ export default function MenuPage() {
           left="0" 
           w="100%" 
           px={4} 
-          py={6}
+          pb={{ base: 8, md: 6 }}
+          pt={6}
           bgGradient="to-t"
           gradientFrom="rgba(255,255,255,0.9)"
           gradientTo="rgba(255,255,255,0)"
+          backdropFilter="blur(10px)"
           zIndex={1000}
         >
           <Button 

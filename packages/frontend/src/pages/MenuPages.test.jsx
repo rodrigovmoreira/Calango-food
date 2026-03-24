@@ -137,11 +137,11 @@ describe('MenuPage (Cardápio Público)', () => {
     expect(screen.getByText('R$ 12.00')).toBeDefined();
   });
 
-  it('renders ADICIONAR buttons for each product', async () => {
+  it('renders Adicionar buttons for each product', async () => {
     renderMenuPage();
 
     await waitFor(() => {
-      const addButtons = screen.getAllByText('ADICIONAR');
+      const addButtons = screen.getAllByText(/Adicionar/i);
       expect(addButtons.length).toBe(mockProducts.length);
     });
   });

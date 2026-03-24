@@ -97,7 +97,7 @@ export default function Settings() {
                       {/* FEEDBACK DO LINK AMIGÁVEL */}
                       <Text fontSize="xs" mt={2} color="gray.500">
                         Seu link público será:
-                        <Text as="span" color="brand.600" fontWeight="bold" ml={1}>
+                        <Text as="span" color="brand.600" fontWeight="bold" ml={1} wordBreak="break-all">
                           calangofood.com/cardapio/{storeName.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-')}
                         </Text>
                       </Text>
@@ -137,7 +137,7 @@ export default function Settings() {
                   <Heading size="md" mb={6}>Horário de Funcionamento</Heading>
                   <VStack align="stretch" gap={4}>
                     {operatingHours.map((schedule, index) => (
-                      <Stack direction={{ base: "column", md: "row" }} key={schedule.day} justify="space-between" align={{ base: "start", md: "center" }} p={3} bg="gray.50" borderRadius="md" opacity={schedule.isActive ? 1 : 0.6}>
+                      <Stack direction={{ base: "column", md: "row" }} key={schedule.day} justify="space-between" align={{ base: "stretch", md: "center" }} p={3} bg="gray.50" borderRadius="md" opacity={schedule.isActive ? 1 : 0.6}>
                         <Flex gap={4} align="center" w="150px">
                           <Switch.Root checked={schedule.isActive} onChange={() => handleDayToggle(index)} colorPalette="brand">
                             <Switch.HiddenInput />

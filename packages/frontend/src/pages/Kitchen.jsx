@@ -102,23 +102,25 @@ export default function Kitchen() {
                   <Badge colorPalette="orange" variant="solid">Preparando</Badge>
                 </Card.Header>
 
-                <Card.Body>
-                  <VStack align="stretch" gap={3}>
-                    {/* Usando Box como container para evitar erro de aninhamento de <p> */}
-                    <Box pb={2} borderBottomWidth="1px">
-                      <Text fontWeight="bold" fontSize="sm" color="gray.600">ENTREGAR EM:</Text>
-                      <Text fontSize="md" overflowWrap="break-word" wordBreak="break-word">{order.delivery.address}</Text>
-                    </Box>
+                <Card.Body p={{ base: 3, md: 5 }}>
+                  <Stack direction={{ base: "column", sm: "row" }} align="stretch" gap={4}>
+                    <VStack align="stretch" gap={3} flex={1}>
+                      {/* Usando Box como container para evitar erro de aninhamento de <p> */}
+                      <Box pb={2} borderBottomWidth="1px">
+                        <Text fontWeight="bold" fontSize="sm" color="gray.600">ENTREGAR EM:</Text>
+                        <Text fontSize="md" overflowWrap="break-word" wordBreak="break-word">{order.delivery.address}</Text>
+                      </Box>
 
-                    <Box>
-                      <Text fontWeight="bold" fontSize="sm" color="gray.600" mb={1}>ITENS:</Text>
-                      {order.items.map((item, idx) => (
-                        <Text key={`${order._id}-item-${idx}`} fontSize="sm" overflowWrap="break-word" wordBreak="break-word">
-                          <Box as="span" fontWeight="bold" color="brand.500">{item.quantity}x</Box> {item.name}
-                        </Text>
-                      ))}
-                    </Box>
-                  </VStack>
+                      <Box>
+                        <Text fontWeight="bold" fontSize="sm" color="gray.600" mb={1}>ITENS:</Text>
+                        {order.items.map((item, idx) => (
+                          <Text key={`${order._id}-item-${idx}`} fontSize="sm" overflowWrap="break-word" wordBreak="break-word">
+                            <Box as="span" fontWeight="bold" color="brand.500">{item.quantity}x</Box> {item.name}
+                          </Text>
+                        ))}
+                      </Box>
+                    </VStack>
+                  </Stack>
                 </Card.Body>
 
                 <Card.Footer>
