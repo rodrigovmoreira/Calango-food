@@ -198,7 +198,7 @@ class OrderController {
            WppService.sendMessage(
              finalTenantId, 
              clientId, // Aqui assumimos que clientId é o WhatsApp do cliente salvo sem formatação extra (apenas número)
-             `✅ *Calango Delivery*\n\nSeu pedido foi recebido com sucesso!\n\n*Total:* R$ ${calculatedTotal.toFixed(2)}\n*Entrega:* ${address}\n\nAcompanhe seu pedido quando quiser.`
+             `✅ *Calango Delivery*\n\nSeu pedido foi recebido com sucesso!\n\n*Total:* R$ ${calculatedTotal.toFixed(2)}\n*Entrega:* ${addressToUse}\n\nAcompanhe seu pedido quando quiser.`
            );
         });
       } catch (wppError) {
