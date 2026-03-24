@@ -141,7 +141,7 @@ describe('MenuPage (Cardápio Público)', () => {
     renderMenuPage();
 
     await waitFor(() => {
-      const addButtons = screen.getAllByText('ADICIONAR');
+      const addButtons = screen.getAllByText(/ADICIONAR/i);
       expect(addButtons.length).toBe(mockProducts.length);
     });
   });
