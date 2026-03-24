@@ -119,6 +119,7 @@ export default function OrderStatusPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const restaurantName = location.state?.restaurantName || '';
+  const slug = location.state?.slug || '';
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -158,11 +159,19 @@ export default function OrderStatusPage() {
       <Center h="100vh" bg="gray.50">
         <VStack gap={4}>
           <Text fontSize="xl" color="gray.500">{error || 'Pedido não encontrado.'}</Text>
-          <Button colorPalette="brand" onClick={() => navigate('/')}>Voltar ao Início</Button>
+          <Button colorPalette="brand" onClick={() => navigate(slug ? `/cardapio/${slug}` : '/')}>Voltar ao Início</Button>
         </VStack>
       </Center>
     );
   }
+
+  const handleNewOrder = () => {
+    if (slug) {
+      navigate(`/cardapio/${slug}`);
+    } else {
+      navigate('/');
+    }
+  };
 
   const statusInfo = STATUS_CONFIG[order.currentStatus] || STATUS_CONFIG.pending;
 
@@ -176,7 +185,7 @@ export default function OrderStatusPage() {
       </style>
 
       {/* Header */}
-      <Box bgGradient="linear(to-br, brand.500, brand.neon)" py={8} px={4} color="white" textAlign="center">
+      <Box w="100%" bgGradient="to-r" gradientFrom="brand.500" gradientTo="brand.700" color="white" py={8} px={4} shadow="md" textAlign="center">
         {restaurantName && <Text fontSize="sm" opacity={0.9} mb={1}>{restaurantName}</Text>}
         <Heading size="lg" fontWeight="800">Acompanhe seu Pedido</Heading>
         <Text fontSize="xs" opacity={0.7} mt={2}>Pedido #{orderId.slice(-6).toUpperCase()}</Text>
@@ -238,6 +247,14 @@ export default function OrderStatusPage() {
             </Box>
           )}
         </Box>
+
+        {/* Botão para Fazer Novo Pedido */}
+        <Button 
+          w="full" h="56px" mt={6} colorPalette="brand" variant="outline"
+          onClick={handleNewOrder} fontWeight="bold"
+        >
+          Fazer um Novo Pedido
+        </Button>
       </Container>
     </Box>
   );

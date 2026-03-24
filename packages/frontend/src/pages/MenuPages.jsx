@@ -11,23 +11,28 @@ import { foodAPI } from '../services/api';
 import { toaster } from "../components/ui/toaster";
 import CartDrawer from '../components/CartDrawer';
 import ProductModal from '../components/ProductModal';
+import { useApp } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function MenuPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { state: { cart }, dispatch } = useApp();
+  
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryOrder, setCategoryOrder] = useState([]); // Ordem definida pelo lojista
-  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [activeOrderId, setActiveOrderId] = useState(null);
 
   const removeFromCart = React.useCallback((cartId) => {
-    setCart(prev => prev.filter(item => item.cartId !== cartId));
-  }, []);
+    dispatch({ type: 'SET_CART', payload: cart.filter(item => item.cartId !== cartId) });
+  }, [cart, dispatch]);
 
   // 1. BUSCA DE DADOS REAIS DO BACKEND 
   useEffect(() => {
@@ -60,7 +65,24 @@ export default function MenuPage() {
       }
     };
 
-    if (slug) fetchMenu();
+    if (slug) {
+      fetchMenu();
+      
+      // Verifica se tem pedido em andamento no localStorage
+      const lastOrderId = localStorage.getItem('calango_last_order');
+      const lastOrderTime = localStorage.getItem('calango_last_order_time');
+      
+      if (lastOrderId && lastOrderTime) {
+        // Se passou de 24h, limpa o cache
+        const hoursPassed = (Date.now() - parseInt(lastOrderTime)) / (1000 * 60 * 60);
+        if (hoursPassed > 24) {
+          localStorage.removeItem('calango_last_order');
+          localStorage.removeItem('calango_last_order_time');
+        } else {
+          setActiveOrderId(lastOrderId);
+        }
+      }
+    }
   }, [slug]);
 
   const addToCart = React.useCallback((product) => {
@@ -72,8 +94,8 @@ export default function MenuPage() {
       });
       return;
     }
-    setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
-  }, [isOpen]);
+    dispatch({ type: 'SET_CART', payload: [...cart, { ...product, cartId: Date.now() + Math.random() }] });
+  }, [isOpen, cart, dispatch]);
 
   const openProductModal = React.useCallback((product) => {
     if (!isOpen) {
@@ -119,6 +141,21 @@ export default function MenuPage() {
 
   return (
     <Box minH="100vh" bg="gray.100" pb="120px">
+      {/* BANNER DE PEDIDO ATIVO */}
+      {activeOrderId && (
+        <Flex 
+          bg="orange.500" color="white" p={3} justify="center" align="center" gap={3}
+          cursor="pointer" onClick={() => navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } })}
+          _hover={{ bg: "orange.600" }} transition="all 0.2s"
+          position="relative" zIndex={10}
+        >
+          <Icon as={FaExclamationCircle} />
+          <Text fontWeight="bold" fontSize="sm">
+            Você tem um pedido em andamento. Clique aqui para acompanhar!
+          </Text>
+        </Flex>
+      )}
+
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
         h={{ base: "140px", md: "300px" }}

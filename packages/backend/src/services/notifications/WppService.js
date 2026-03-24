@@ -134,9 +134,13 @@ class WppService {
   }
 
   async sendMessage(tenantId, to, message) {
-    const client = this.sessions.get(tenantId.toString());
-    if (client) {
-      await client.sendMessage(`${to}@c.us`, message);
+    const session = this.sessions.get(tenantId.toString());
+    if (session && session.client && session.status === 'connected') {
+      try {
+        await session.client.sendMessage(`${to}@c.us`, message);
+      } catch (err) {
+        console.error(`Erro ao enviar WhatsApp para ${to}:`, err);
+      }
     }
   }
 }

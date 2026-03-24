@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { toaster } from "../components/ui/toaster";
 import { foodAPI } from '../services/api';
+import { useApp } from '../context/AppContext';
 
 // === UTILITÁRIOS ===
 
@@ -333,8 +334,15 @@ export default function CheckoutPage() {
   const { slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { state: appState, dispatch } = useApp();
 
-  const { cart = [], total = 0, restaurantName = '', isStoreOpen = true } = location.state || {};
+  const locState = location.state || {};
+  const restaurantName = locState.restaurantName || '';
+  const isStoreOpen = locState.isStoreOpen ?? true;
+
+  // Recupera o carrinho do estado de navegação, ou usa o contexto global caso o usuário dê F5
+  const cart = locState.cart?.length > 0 ? locState.cart : (appState.cart || []);
+  const total = cart.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -469,6 +477,11 @@ export default function CheckoutPage() {
 
       const response = await foodAPI.createOrder(payload);
 
+      // Persistência: salva o active order no localStorage e limpa a sacola.
+      localStorage.setItem('calango_last_order', response.data.orderId);
+      localStorage.setItem('calango_last_order_time', Date.now().toString());
+      dispatch({ type: 'SET_CART', payload: [] });
+
       toaster.create({
         title: "Pedido Confirmado! 🎉",
         description: "Seu pedido foi enviado para a cozinha.",
@@ -478,7 +491,7 @@ export default function CheckoutPage() {
       // Redireciona para a tela de acompanhamento
       setTimeout(() => {
         navigate(`/pedido/${response.data.orderId}`, {
-          state: { restaurantName }
+          state: { restaurantName, slug }
         });
       }, 1000);
 

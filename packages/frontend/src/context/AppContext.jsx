@@ -3,6 +3,15 @@ import { io } from "socket.io-client";
 
 const AppContext = createContext();
 
+const getInitialCart = () => {
+  try {
+    const saved = localStorage.getItem('calango_cart');
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 const initialState = {
   user: null,
   whatsappStatus: {
@@ -10,7 +19,8 @@ const initialState = {
     mode: 'Desconectado',
     qrCode: null,
   },
-  loading: false
+  loading: false,
+  cart: getInitialCart()
 };
 
 function appReducer(state, action) {
@@ -40,6 +50,8 @@ function appReducer(state, action) {
           qrCode: action.payload.isConnected ? null : state.whatsappStatus.qrCode
         }
       };
+    case 'SET_CART':
+      return { ...state, cart: action.payload };
     default:
       return state;
   }
@@ -99,6 +111,11 @@ export const AppProvider = ({ children }) => {
     // Cleanup: Desconecta o socket ao fazer logout ou fechar a aba
     return () => socket.disconnect();
   }, [state.user?.id]);
+
+  // 3. Persistência do Carrinho
+  useEffect(() => {
+    localStorage.setItem('calango_cart', JSON.stringify(state.cart));
+  }, [state.cart]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
