@@ -498,8 +498,7 @@ export default function CheckoutPage() {
     <Box minH="100vh" bg="gray.50">
       {/* Header */}
       <Box
-        bgGradient="linear(to-br, brand.500, brand.neon)"
-        py={6} px={4} color="white" textAlign="center"
+        w="100%" bgGradient="to-r" gradientFrom="brand.500" gradientTo="brand.700" color="white" py={8} px={4} shadow="md" textAlign="center"
       >
         <Text fontSize="sm" opacity={0.9}>{restaurantName}</Text>
         <Heading size="lg" fontWeight="800" mt={1}>Checkout</Heading>
