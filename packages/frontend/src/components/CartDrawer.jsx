@@ -56,7 +56,7 @@ export default function CartDrawer({
         {/* Header */}
         <Flex 
           bgGradient="linear(to-br, brand.500, brand.neon)"
-          p={6} color="white" align="center" justify="space-between"
+          p={6} color="black" align="center" justify="space-between"
           boxShadow="sm" flexShrink={0}
         >
           <VStack align="start" gap={0}>
@@ -64,7 +64,7 @@ export default function CartDrawer({
             <Text fontSize="sm" opacity={0.9}>{restaurantName}</Text>
           </VStack>
           <IconButton 
-            variant="ghost" color="white" _hover={{ bg: "whiteAlpha.300" }}
+            variant="ghost" color="black" _hover={{ bg: "blackAlpha.300" }}
             onClick={onClose} aria-label="Fechar sacola"
           >
             <FaTimes />
@@ -95,22 +95,28 @@ export default function CartDrawer({
                   borderColor="gray.100"
                   _hover={{ borderColor: "gray.200", bg: "gray.100" }}
                   transition="all 0.2s"
+                  gap={2}
                 >
-                  <VStack align="start" gap={1} flex={1}>
-                    <Text fontWeight="bold" fontSize="sm" color="gray.800">{item.name}</Text>
+                  <VStack align="start" gap={1} flex={1} overflow="hidden">
+                    <Text fontWeight="bold" fontSize="sm" color="gray.800" wordBreak="break-word" noOfLines={3}>
+                      {item.name}
+                    </Text>
                     {item.customizations && item.customizations.length > 0 && (
-                      <Text fontSize="xs" color="gray.400">
+                      <Text fontSize="xs" color="gray.400" wordBreak="break-word" noOfLines={2}>
                         + {item.customizations.map(c => c.name).join(', ')}
                       </Text>
                     )}
-                    <Text fontSize="sm" fontWeight="bold" color="brand.600">R$ {item.price.toFixed(2)}</Text>
+                    <Text fontSize="sm" fontWeight="bold" color="brand.600" whiteSpace="nowrap">
+                      R$ {item.price.toFixed(2)}
+                    </Text>
                   </VStack>
                   <IconButton 
-                    size="xs" 
+                    size="sm"
                     colorPalette="red" 
                     variant="ghost" 
                     onClick={() => removeFromCart(item.cartId)}
                     aria-label="Remover item"
+                    flexShrink={0}
                   >
                     <FaTrash />
                   </IconButton>

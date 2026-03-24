@@ -121,7 +121,7 @@ export default function MenuPage() {
     <Box minH="100vh" bg="gray.100" pb="120px">
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
-        h={{ base: "220px", md: "300px" }} 
+        h={{ base: "140px", md: "300px" }}
         bgGradient="to-br"
         gradientFrom={restaurant.primaryColor || "brand.700"}
         gradientTo="brand.neon"
@@ -212,9 +212,10 @@ export default function MenuPage() {
                       onClick={() => { if(product.isAvailable && isOpen) openProductModal(product); }}
                       position="relative"
                       overflow="hidden"
+                      wrap="nowrap"
                     >
-                      <VStack align="start" gap={1} flex={1} minW={0}>
-                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight">
+                      <VStack align="start" gap={1} flex={1} minW={0} overflow="hidden">
+                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight" noOfLines={2}>
                           {product.name}
                         </Text>
                         <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
@@ -230,6 +231,7 @@ export default function MenuPage() {
                           <Image 
                             src={product.imageUrl} 
                             boxSize={{ base: "90px", md: "110px" }} 
+                            minW={{ base: "90px", md: "110px" }}
                             maxW="100%"
                             objectFit="cover" 
                             borderRadius="xl" 
@@ -273,15 +275,13 @@ export default function MenuPage() {
       {cart.length > 0 && (
         <Box 
           position="fixed"
-          bottom={0} 
+          bottom={{ base: 4, md: 8 }}
           left="0" 
           w="100%" 
           px={4} 
-          py={6}
-          bgGradient="to-t"
-          gradientFrom="rgba(255,255,255,0.9)"
-          gradientTo="rgba(255,255,255,0)"
+          py={0}
           zIndex={1000}
+          pointerEvents="none"
         >
           <Button 
             w="full" 
@@ -291,7 +291,8 @@ export default function MenuPage() {
             display="flex"
             colorPalette="brand" 
             boxShadow="0 10px 25px -5px rgba(0,0,0,0.3)"
-            borderRadius="2xl"
+            borderRadius="full"
+            pointerEvents="auto"
             justifyContent="space-between"
             px={8}
             _hover={{ transform: 'translateY(-2px) scale(1.01)', boxShadow: "0 15px 35px -5px rgba(0,0,0,0.4)" }}

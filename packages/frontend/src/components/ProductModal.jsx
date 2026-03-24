@@ -148,7 +148,7 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
     <Portal>
       <Box position="fixed" top={0} left={0} w="100vw" h="100vh" bg="blackAlpha.600" zIndex={1500} onClick={onClose} backdropFilter="blur(3px)" />
       
-      <Flex position="fixed" top={0} right={0} w={{ base: "100%", md: "500px" }} h="100vh" bg="gray.50" zIndex={1600} direction="column" boxShadow="-5px 0 20px rgba(0,0,0,0.2)" animation="slideIn 0.3s ease-out">
+      <Flex position="fixed" top={0} right={0} w={{ base: "100%", md: "500px" }} h="100vh" bg="gray.50" zIndex={1600} direction="column" boxShadow="-5px 0 20px rgba(0,0,0,0.2)" animation="slideIn 0.3s ease-out" m={0} p={0}>
         <style>{`@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
 
         {/* Imagem Cover */}
@@ -161,13 +161,13 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
             </Flex>
           )}
           
-          <IconButton position="absolute" top={4} right={4} colorPalette="gray" bg="white" rounded="full" onClick={onClose} aria-label="Fechar" shadow="md">
+          <IconButton position="absolute" top={4} right={4} color="black" bg="white" rounded="full" onClick={onClose} aria-label="Fechar" shadow="md">
             <FaTimes />
           </IconButton>
         </Box>
 
         {/* Detalhes do Produto */}
-        <Box flex={1} overflowY="auto" pb="100px">
+        <Box flex={1} overflowY="auto" pb={0}>
           <Box p={6} bg="white" shadow="sm">
             <Heading size="xl" mb={2} color="gray.800">{product.name}</Heading>
             <Text color="gray.500">{product.description}</Text>
@@ -205,6 +205,7 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
                         <Flex 
                           key={oIdx} 
                           p={4} 
+                          minH="44px"
                           bg={isSelected ? "brand.50" : "white"} 
                           border="2px solid" 
                           borderColor={isSelected ? "brand.500" : "gray.200"} 
@@ -231,6 +232,7 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
                         <Flex 
                           key={oIdx} 
                           p={4} 
+                          minH="44px"
                           bg="white" 
                           border="1px solid" 
                           borderColor="gray.200" 
@@ -275,7 +277,7 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
         </Box>
 
         {/* Call to Action Footer */}
-        <Box position="absolute" bottom={0} left={0} w="full" p={4} bg="white" borderTop="1px solid" borderColor="gray.100" shadow="lg">
+        <Box w="full" p={4} bg="white" borderTop="1px solid" borderColor="gray.100" shadow="lg" flexShrink={0}>
           <Flex gap={4}>
             <HStack bg="gray.100" borderRadius="xl" px={4} py={3}>
               <IconButton variant="ghost" color="gray.600" size="sm" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}><FaMinus /></IconButton>
