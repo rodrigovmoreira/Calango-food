@@ -113,7 +113,7 @@
 ### 1.4. Fluxo de Checkout (Novo — pós-sacola)
 > Hoje o `CartDrawer` faz tudo em uma tela só. Precisamos separar em etapas claras para uma experiência guiada.
 
-- [ ] **Etapa 1 — Identificação**: Perguntar o celular. Se já existir no banco, exibir banner confirmando "Você é o João? Confirme seu endereço". Se não existir, formulário de cadastro rápido (nome + celular).
+- [x] **Etapa 1 — Identificação**: Perguntar o celular. Se já existir no banco, exibir banner confirmando "Você é o João? Confirme seu endereço". Se não existir, formulário de cadastro rápido (nome + celular).
 - [x] **Etapa 2 — Endereço de Entrega**: Formulário de endereço completo (rua, número, bairro, complemento, referência). Opção "Retirada no Balcão" (sem endereço, sem frete).
 - [ ] **Etapa 3 — Frete**: Calcular valor do frete baseado no endereço. Mostrar resumo: subtotal dos produtos + frete = total final.
 - [ ] **Etapa 4 — Forma de Pagamento**: Opções: PIX, Cartão, Dinheiro na entrega. Cada uma leva a tratamento diferente (Pilar 2). Se "Dinheiro", perguntar "Precisa de troco pra quanto?".

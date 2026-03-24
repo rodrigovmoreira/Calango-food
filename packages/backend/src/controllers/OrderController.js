@@ -187,9 +187,12 @@ class OrderController {
       }
 
       // 4. Sucesso no processamento e registro do Gateway
+      // TEMPORÁRIO MVP: Auto-aprova pagamento. No futuro, dependerá do webhook real.
+      newOrder.payment.status = 'paid';
       newOrder.payment.transactionId = paymentResult.transactionId;
-      newOrder.payment.gatewayProvider = paymentResult.gateway; // PagBank ou Stripe
-      newOrder.history.push({ status: 'pending' });
+      newOrder.payment.gatewayProvider = paymentResult.gateway;
+      newOrder.delivery.status = 'paid';
+      newOrder.history.push({ status: 'paid' });
       await newOrder.save();
 
       // Dispara mensagem WhatsApp de confirmação de recebimento do pedido
@@ -236,10 +239,9 @@ class OrderController {
         return res.status(404).json({ error: 'Pedido não encontrado.' });
       }
 
-      // Determina o status atual baseado no último histórico
       const currentStatus = order.history.length > 0 
         ? order.history[order.history.length - 1].status 
-        : order.payment.status === 'paid' ? 'preparing' : 'pending';
+        : 'pending';
 
       res.json({
         orderId: order._id,
@@ -257,6 +259,49 @@ class OrderController {
       });
     } catch (error) {
       res.status(500).json({ error: 'Erro ao buscar status do pedido.', details: error.message });
+    }
+  }
+
+  // Atualiza o status do pedido (usado pela Kitchen)
+  async updateOrderStatus(req, res) {
+    const VALID_TRANSITIONS = {
+      paid: ['preparing'],
+      preparing: ['ready'],
+      ready: ['delivering'],
+      delivering: ['delivered'],
+    };
+
+    try {
+      const order = await Order.findOne({ _id: req.params.id, tenantId: req.tenantId });
+
+      if (!order) {
+        return res.status(404).json({ error: 'Pedido não encontrado.' });
+      }
+
+      const { status } = req.body;
+      const currentStatus = order.history.length > 0
+        ? order.history[order.history.length - 1].status
+        : 'pending';
+
+      const allowedNext = VALID_TRANSITIONS[currentStatus] || [];
+      if (!allowedNext.includes(status)) {
+        return res.status(400).json({
+          error: `Transição inválida: ${currentStatus} → ${status}`,
+          allowed: allowedNext
+        });
+      }
+
+      order.delivery.status = status;
+      order.history.push({ status });
+      await order.save();
+
+      res.json({
+        orderId: order._id,
+        currentStatus: status,
+        history: order.history
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao atualizar status.', details: error.message });
     }
   }
 }
