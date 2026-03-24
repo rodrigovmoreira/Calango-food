@@ -68,6 +68,7 @@ app.get('/api/orders', protect, orderController.getOrders);
 // Nova rota pública para criar pedido a partir do cardápio
 app.post('/api/orders', orderController.createOrder);
 app.get('/api/orders/:id/status', orderController.getOrderStatus); // Pública: acompanhamento do pedido
+app.patch('/api/orders/:id/status', protect, orderController.updateOrderStatus); // Admin: Kitchen muda status
 
 // Rotas de Produtos
 import productController from './controllers/ProductController.js';
