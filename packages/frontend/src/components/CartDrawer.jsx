@@ -56,7 +56,7 @@ export default function CartDrawer({
         {/* Header */}
         <Flex 
           bgGradient="linear(to-br, brand.500, brand.neon)"
-          p={6} color="white" align="center" justify="space-between"
+          p={6} color="black" align="center" justify="space-between"
           boxShadow="sm" flexShrink={0}
         >
           <VStack align="start" gap={0}>
@@ -64,7 +64,7 @@ export default function CartDrawer({
             <Text fontSize="sm" opacity={0.9}>{restaurantName}</Text>
           </VStack>
           <IconButton 
-            variant="ghost" color="white" _hover={{ bg: "whiteAlpha.300" }}
+            variant="ghost" color="black" _hover={{ bg: "blackAlpha.300" }}
             onClick={onClose} aria-label="Fechar sacola"
           >
             <FaTimes />

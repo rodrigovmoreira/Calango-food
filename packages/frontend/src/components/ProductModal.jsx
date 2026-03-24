@@ -161,7 +161,7 @@ export default function ProductModal({ isOpen, onClose, product, onAddToCart }) 
             </Flex>
           )}
           
-          <IconButton position="absolute" top={4} right={4} colorPalette="gray" bg="white" rounded="full" onClick={onClose} aria-label="Fechar" shadow="md">
+          <IconButton position="absolute" top={4} right={4} color="black" bg="white" rounded="full" onClick={onClose} aria-label="Fechar" shadow="md">
             <FaTimes />
           </IconButton>
         </Box>
