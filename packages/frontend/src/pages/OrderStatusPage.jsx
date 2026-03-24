@@ -118,8 +118,8 @@ export default function OrderStatusPage() {
   const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const restaurantName = location.state?.restaurantName || '';
-  const slug = location.state?.slug || '';
+  const locationRestaurantName = location.state?.restaurantName || '';
+  const locationSlug = location.state?.slug || '';
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,20 +154,23 @@ export default function OrderStatusPage() {
     );
   }
 
+  const displaySlug = order?.restaurantSlug || locationSlug;
+  const displayRestaurantName = order?.restaurantName || locationRestaurantName;
+
   if (error || !order) {
     return (
       <Center h="100vh" bg="gray.50">
         <VStack gap={4}>
           <Text fontSize="xl" color="gray.500">{error || 'Pedido não encontrado.'}</Text>
-          <Button colorPalette="brand" onClick={() => navigate(slug ? `/cardapio/${slug}` : '/')}>Voltar ao Início</Button>
+          <Button colorPalette="brand" onClick={() => navigate(displaySlug ? `/cardapio/${displaySlug}` : '/')}>Voltar ao Início</Button>
         </VStack>
       </Center>
     );
   }
 
   const handleNewOrder = () => {
-    if (slug) {
-      navigate(`/cardapio/${slug}`);
+    if (displaySlug) {
+      navigate(`/cardapio/${displaySlug}`);
     } else {
       navigate('/');
     }
@@ -186,7 +189,7 @@ export default function OrderStatusPage() {
 
       {/* Header */}
       <Box w="100%" bgGradient="to-r" gradientFrom="brand.500" gradientTo="brand.700" color="white" py={8} px={4} shadow="md" textAlign="center">
-        {restaurantName && <Text fontSize="sm" opacity={0.9} mb={1}>{restaurantName}</Text>}
+        {displayRestaurantName && <Text fontSize="sm" opacity={0.9} mb={1}>{displayRestaurantName}</Text>}
         <Heading size="lg" fontWeight="800">Acompanhe seu Pedido</Heading>
         <Text fontSize="xs" opacity={0.7} mt={2}>Pedido #{orderId.slice(-6).toUpperCase()}</Text>
       </Box>

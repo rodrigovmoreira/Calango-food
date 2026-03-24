@@ -233,7 +233,8 @@ class OrderController {
   async getOrderStatus(req, res) {
     try {
       const order = await Order.findById(req.params.id)
-        .select('items total payment delivery history customerName createdAt');
+        .select('items total payment delivery history customerName createdAt tenantId')
+        .populate('tenantId', 'slug name');
       
       if (!order) {
         return res.status(404).json({ error: 'Pedido não encontrado.' });
@@ -245,6 +246,8 @@ class OrderController {
 
       res.json({
         orderId: order._id,
+        restaurantSlug: order.tenantId?.slug,
+        restaurantName: order.tenantId?.name,
         customerName: order.customerName,
         items: order.items,
         total: order.total,
