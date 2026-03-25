@@ -10,7 +10,6 @@ import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
 import Products from './pages/Products';
 import Categories from './pages/Categories';
-import Menu from './pages/Menu';
 import Entregadores from './pages/Entregadores';
 import MenuPages from './pages/MenuPages';
 import CheckoutPage from './pages/CheckoutPage';
@@ -80,9 +79,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <Settings />
               </ProtectedRoute>
             } />
-
-            {/* Rota Pública do Cardápio Digital */}
-            <Route path="/menu/:tenantId" element={<Menu />} />
 
             {/* Fallback para rotas não encontradas */}
             <Route path="*" element={<Navigate to="/" replace />} />

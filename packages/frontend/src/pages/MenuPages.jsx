@@ -5,7 +5,7 @@ import {
   Badge, Button, Image, Icon, HStack, Spinner, Center, Input
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
-import { FaShoppingBasket, FaClock, FaExclamationCircle } from 'react-icons/fa';
+import { FaShoppingBasket, FaClock, FaExclamationCircle, FaHome, FaPercentage, FaUser } from 'react-icons/fa';
 import { isStoreOpen } from '../utils/dateUtils';
 import { foodAPI } from '../services/api';
 import { toaster } from "../components/ui/toaster";
@@ -159,9 +159,7 @@ export default function MenuPage() {
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
         h={{ base: "140px", md: "300px" }}
-        bgGradient="to-br"
-        gradientFrom={restaurant.primaryColor || "brand.700"}
-        gradientTo="brand.neon"
+        bg={restaurant.primaryColor || "brand.500"}
         justify="center" 
         align="center"
         color="white"
@@ -169,37 +167,41 @@ export default function MenuPage() {
         px={4}
         position="relative"
       >
-        <VStack gap={3} position="relative" top="-20px">
+        {/* Logo Overlap Container */}
+        <VStack gap={2} position="absolute" bottom={{ base: "-45px", md: "-60px" }} zIndex={3}>
           {restaurant.logoUrl && (
             <Image 
               src={restaurant.logoUrl} 
-              h="90px" 
-              w="90px" 
+              h={{ base: "90px", md: "120px" }}
+              w={{ base: "90px", md: "120px" }}
               objectFit="cover" 
               borderRadius="full" 
-              mb={2} 
-              border="4px solid rgba(255,255,255,0.2)"
+              border="4px solid white"
               boxShadow="xl"
+              bg="white"
             />
           )}
-          <Heading size="4xl" fontWeight="900" letterSpacing="tight" textShadow="0px 2px 10px rgba(0,0,0,0.3)">
+        </VStack>
+
+        <VStack gap={3} position="relative" top={{ base: "-10px", md: "-20px" }}>
+          <Heading size="3xl" fontWeight="900" letterSpacing="tight" textShadow="0px 2px 10px rgba(0,0,0,0.2)">
             {restaurant.name}
           </Heading>
-          <HStack bg="rgba(0,0,0,0.3)" backdropFilter="blur(5px)" px={5} py={1.5} borderRadius="full">
+          <HStack bg="rgba(0,0,0,0.2)" backdropFilter="blur(5px)" px={5} py={1.5} borderRadius="full">
             <Icon as={FaClock} />
-            <Text fontSize="sm" fontWeight="bold" letterSpacing="wide">
+            <Text fontSize="xs" fontWeight="bold" letterSpacing="wide">
               {isOpen ? "LOJA ABERTA" : "LOJA FECHADA"}
             </Text>
           </HStack>
         </VStack>
       </Flex>
 
-      <Container maxW="container.lg" mt={{ base: "-40px", md: "-60px" }} position="relative" zIndex={2}>
+      <Container maxW="container.lg" mt={{ base: "50px", md: "70px" }} position="relative" zIndex={2} pb={{ base: "140px", md: 0 }}>
         <Box 
           bg="white" 
           p={{ base: 5, md: 10 }} 
           borderRadius="3xl" 
-          boxShadow="0 20px 40px -10px rgba(0,0,0,0.08)"
+          boxShadow="0 10px 30px -5px rgba(0,0,0,0.05)"
           minH="50vh"
         >
           <VStack gap={10} align="stretch">
@@ -308,11 +310,84 @@ export default function MenuPage() {
         </Box>
       </Container>
 
-      {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
+      {/* Mobile App-like Bottom Navigation & Sticky Cart */}
+      <Box display={{ base: 'block', md: 'none' }} position="fixed" bottom="0" left="0" w="full" zIndex={1000}>
+        {/* Sticky Cart Summary */}
+        {cart.length > 0 && (
+          <Flex
+            bg="brand.500"
+            color="white"
+            p={4}
+            px={6}
+            justify="space-between"
+            align="center"
+            onClick={() => setIsCartOpen(true)}
+            cursor="pointer"
+            boxShadow="0 -4px 10px rgba(0,0,0,0.1)"
+            position="relative"
+            zIndex={2}
+          >
+            <Flex align="center" gap={3}>
+              <Box bg="whiteAlpha.300" w="30px" h="30px" display="flex" alignItems="center" justifyContent="center" borderRadius="full" fontWeight="bold">
+                {cart.length}
+              </Box>
+              <Text fontWeight="bold" fontSize="lg">Ver pedido</Text>
+            </Flex>
+            <Text fontWeight="bold" fontSize="lg">
+              R$ {totalCart.toFixed(2)}
+            </Text>
+          </Flex>
+        )}
+
+        {/* Bottom Navigation Bar */}
+        <Flex
+          bg="white"
+          borderTop="1px solid"
+          borderColor="gray.200"
+          pt={3}
+          pb={6}
+          px={2}
+          justify="space-around"
+          align="center"
+          boxShadow="0 -2px 10px rgba(0, 0, 0, 0.05)"
+          position="relative"
+          zIndex={1}
+        >
+          <VStack gap={1} color="brand.500" cursor="pointer">
+            <Icon as={FaHome} boxSize="24px" />
+            <Text fontSize="xs" fontWeight="bold">Início</Text>
+          </VStack>
+
+          <VStack gap={1} color="gray.400" cursor="pointer">
+            <Icon as={FaPercentage} boxSize="24px" />
+            <Text fontSize="xs">Promoções</Text>
+          </VStack>
+
+          <VStack gap={1} color={cart.length > 0 ? "brand.500" : "gray.400"} cursor="pointer" onClick={() => setIsCartOpen(true)}>
+            <Box position="relative">
+              <Icon as={FaShoppingBasket} boxSize="24px" />
+              {cart.length > 0 && (
+                <Box position="absolute" top="-2px" right="-8px" bg="red.500" color="white" borderRadius="full" w="18px" h="18px" display="flex" alignItems="center" justifyContent="center" fontSize="10px" fontWeight="bold">
+                  {cart.length}
+                </Box>
+              )}
+            </Box>
+            <Text fontSize="xs">Pedidos</Text>
+          </VStack>
+
+          <VStack gap={1} color="gray.400" cursor="pointer">
+            <Icon as={FaUser} boxSize="24px" />
+            <Text fontSize="xs">Perfil</Text>
+          </VStack>
+        </Flex>
+      </Box>
+
+      {/* Desktop Sticky Cart */}
       {cart.length > 0 && (
         <Box 
+          display={{ base: 'none', md: 'block' }}
           position="fixed"
-          bottom={{ base: 4, md: 8 }}
+          bottom={8}
           left="0" 
           w="100%" 
           px={4} 
