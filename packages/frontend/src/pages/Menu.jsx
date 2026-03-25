@@ -6,7 +6,7 @@ import {
 } from '@chakra-ui/react';
 import { Toaster, toaster } from "../components/ui/toaster";
 import { DialogBody, DialogCloseTrigger, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger } from "../components/ui/dialog";
-import { ShoppingCartIcon, PlusIcon, MinusIcon, MapPinIcon } from 'lucide-react';
+import { ShoppingCartIcon, PlusIcon, MinusIcon, MapPinIcon, HomeIcon, PercentIcon, ShoppingBagIcon, UserIcon } from 'lucide-react';
 import { foodAPI } from '../services/api';
 
 export default function Menu() {
@@ -134,7 +134,7 @@ export default function Menu() {
             
             <DialogRoot open={isCartOpen} onOpenChange={(e) => setIsCartOpen(e.open)}>
               <DialogTrigger asChild>
-                <Button variant="surface" bg="white" color="brand.600" size="lg" position="relative" borderRadius="full" px={6}>
+                <Button display={{ base: 'none', md: 'flex' }} variant="surface" bg="white" color="brand.600" size="lg" position="relative" borderRadius="full" px={6}>
                   <ShoppingCartIcon />
                   <Text ml={2} fontWeight="bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}</Text>
                   {cart.length > 0 && (
@@ -205,7 +205,7 @@ export default function Menu() {
       </Box>
 
       {/* Grid de Produtos */}
-      <Container maxW="container.xl" py={12}>
+      <Container maxW="container.xl" pt={12} pb={{ base: 40, md: 12 }}>
          {products.length === 0 ? (
            <VStack py={20} opacity={0.6}>
               <Heading size="md">Nenhum produto disponível no momento :(</Heading>
@@ -240,6 +240,80 @@ export default function Menu() {
            </SimpleGrid>
          )}
       </Container>
+
+      {/* App-like Mobile Footer & Sticky Cart */}
+      <Box display={{ base: 'block', md: 'none' }} position="fixed" bottom="0" left="0" w="full" zIndex="docked">
+        {/* Sticky Cart Summary */}
+        {cart.length > 0 && (
+          <Flex
+            bg="brand.500"
+            color="white"
+            p={4}
+            justify="space-between"
+            align="center"
+            onClick={() => setIsCartOpen(true)}
+            cursor="pointer"
+            shadow="lg"
+            borderTopRadius="xl"
+            mb="-2" /* Overlaps slightly with the nav bar below for a seamless look, or just stack it */
+            position="relative"
+            zIndex={2}
+          >
+            <Flex align="center" gap={3}>
+              <Box bg="whiteAlpha.300" px={3} py={1} borderRadius="full" fontWeight="bold">
+                {cart.reduce((a, b) => a + b.quantity, 0)}
+              </Box>
+              <Text fontWeight="bold">Ver carrinho</Text>
+            </Flex>
+            <Text fontWeight="bold">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
+            </Text>
+          </Flex>
+        )}
+
+        {/* Bottom Navigation Bar */}
+        <Flex
+          bg="white"
+          borderTopWidth="1px"
+          borderColor="gray.200"
+          pt={3}
+          pb={4}
+          px={2}
+          justify="space-around"
+          align="center"
+          shadow="0 -4px 6px -1px rgba(0, 0, 0, 0.05)"
+          position="relative"
+          zIndex={1}
+        >
+          <VStack gap={1} color="brand.600" cursor="pointer">
+            <HomeIcon size={24} />
+            <Text fontSize="xs" fontWeight="bold">Início</Text>
+          </VStack>
+
+          <VStack gap={1} color="gray.400" cursor="not-allowed">
+            <PercentIcon size={24} />
+            <Text fontSize="xs">Promoções</Text>
+          </VStack>
+
+          <VStack gap={1} color={cart.length > 0 ? "brand.600" : "gray.400"} cursor="pointer" onClick={() => setIsCartOpen(true)}>
+            <Box position="relative">
+              <ShoppingBagIcon size={24} />
+              {cart.length > 0 && (
+                <Badge position="absolute" top="-1" right="-2" colorPalette="red" borderRadius="full" w={4} h={4} display="flex" alignItems="center" justifyContent="center" fontSize="10px">
+                  {cart.reduce((a, b) => a + b.quantity, 0)}
+                </Badge>
+              )}
+            </Box>
+            <Text fontSize="xs">Pedidos</Text>
+          </VStack>
+
+          <VStack gap={1} color="gray.400" cursor="not-allowed">
+            <UserIcon size={24} />
+            <Text fontSize="xs">Perfil</Text>
+          </VStack>
+        </Flex>
+      </Box>
+
       <Toaster />
     </Box>
   );
