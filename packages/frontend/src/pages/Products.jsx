@@ -179,7 +179,7 @@ export default function Products() {
     <Sidebar>
       <Box p={8}>
         <Flex justify="space-between" align="center" mb={8}>
-          <Heading size="xl" color="brand.500">Cardápio Inteligente</Heading>
+          <Heading size="xl" color="brand.500">Gestão do Cardápio</Heading>
           
           <DialogRoot open={isModalOpen} onOpenChange={(e) => setIsModalOpen(e.open)} size="xl">
             <DialogTrigger asChild>
@@ -352,6 +352,7 @@ export default function Products() {
                          <Switch.Control>
                            <Switch.Thumb />
                          </Switch.Control>
+                         <Switch.Label>{product.isAvailable ? 'Ativo' : 'Inativo'}</Switch.Label>
                       </Switch.Root>
                     </Table.Cell>
                     <Table.Cell fontWeight="bold">{product.name}</Table.Cell>

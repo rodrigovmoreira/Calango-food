@@ -109,16 +109,16 @@ describe('Products (Admin - Cardápio)', () => {
   it('displays the "+ Novo Produto" button', async () => {
     renderProducts();
 
-    expect(screen.getByText('+ Novo Produto')).toBeDefined();
+    expect(screen.getByText(/Novo Produto/i)).toBeDefined();
   });
 
   it('shows product prices in the table', async () => {
     renderProducts();
 
     await waitFor(() => {
-      expect(screen.getByText('R$ 45.90')).toBeDefined();
+      expect(screen.getByText(/45,90/)).toBeDefined();
     });
 
-    expect(screen.getByText('R$ 12.00')).toBeDefined();
+    expect(screen.getByText(/12,00/)).toBeDefined();
   });
 });

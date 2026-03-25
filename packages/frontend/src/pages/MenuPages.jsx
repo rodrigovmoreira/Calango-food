@@ -140,10 +140,11 @@ export default function MenuPage() {
   );
 
   return (
-    <Box minH="100vh" bg="gray.100" pb="120px">
+    <Flex position="fixed" top="0" left="0" w="100vw" h="100dvh" bg="gray.100" direction="column" overflow="hidden">
       {/* BANNER DE PEDIDO ATIVO */}
       {activeOrderId && (
         <Flex 
+          flexShrink={0}
           bg="orange.500" color="white" p={3} justify="center" align="center" gap={3}
           cursor="pointer" onClick={() => navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } })}
           _hover={{ bg: "orange.600" }} transition="all 0.2s"
@@ -158,6 +159,7 @@ export default function MenuPage() {
 
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
+        flexShrink={0}
         h={{ base: "140px", md: "300px" }}
         bgGradient="to-br"
         gradientFrom={restaurant.primaryColor || "brand.700"}
@@ -194,119 +196,126 @@ export default function MenuPage() {
         </VStack>
       </Flex>
 
-      <Container maxW="container.lg" mt={{ base: "-40px", md: "-60px" }} position="relative" zIndex={2}>
-        <Box 
-          bg="white" 
-          p={{ base: 5, md: 10 }} 
-          borderRadius="3xl" 
-          boxShadow="0 20px 40px -10px rgba(0,0,0,0.08)"
-          minH="50vh"
-        >
-          <VStack gap={10} align="stretch">
-            {/* BARRA DE BUSCA */}
-            <Input
-              size="lg"
-              placeholder="Buscar produtos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              bg="gray.50"
-              borderRadius="xl"
-              boxShadow="sm"
-            />
-            {orderedCategories.map((cat, index) => (
-              <Box key={cat}>
-                <Heading 
-                  size="xl" 
-                  mb={6} 
-                  color="gray.800" 
-                  fontWeight="900"
-                  letterSpacing="tight"
-                  mt={index === 0 ? 0 : 8}
-                >
-                  {cat}
-                </Heading>
-                
-                <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-                  {filteredProducts.filter(p => p.category === cat).map(product => (
-                    <Flex 
-                      key={product._id} 
-                      p={5} 
-                      bg="gray.50" 
-                      borderRadius="2xl" 
-                      border="1px solid" 
-                      borderColor="gray.100"
-                      _hover={{ 
-                        borderColor: "brand.300", 
-                        bg: "white",
-                        boxShadow: "0 10px 30px -10px rgba(0,0,0,0.12)", 
-                        transform: "translateY(-4px)" 
-                      }}
-                      transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                      align="center" 
-                      gap={4}
-                      cursor={product.isAvailable && isOpen ? "pointer" : "not-allowed"}
-                      opacity={product.isAvailable ? 1 : 0.6}
-                      onClick={() => { if(product.isAvailable && isOpen) openProductModal(product); }}
-                      position="relative"
-                      overflow="hidden"
-                      wrap="nowrap"
-                    >
-                      <VStack align="start" gap={1} flex={1} minW={0} overflow="hidden">
-                        <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight" noOfLines={2}>
-                          {product.name}
-                        </Text>
-                        <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
-                          {product.description}
-                        </Text>
-                        <Text color="brand.600" fontWeight="900" fontSize="lg">
-                          R$ {product.price.toFixed(2)}
-                        </Text>
-                      </VStack>
-                      
-                      <VStack align="end" gap={3} flexShrink={0}>
-                        {product.imageUrl && (
-                          <Image 
-                            src={product.imageUrl} 
-                            boxSize={{ base: "90px", md: "110px" }} 
-                            minW={{ base: "90px", md: "110px" }}
-                            maxW="100%"
-                            objectFit="cover" 
-                            borderRadius="xl" 
-                            boxShadow="md"
-                          />
-                        )}
-                        <Button 
-                          size="xs" 
-                          colorPalette="brand" 
-                          borderRadius="full"
-                          px={4}
-                          py={4}
-                          fontWeight="bold"
-                          textTransform="uppercase"
-                          letterSpacing="wider"
-                          disabled={!isOpen || !product.isAvailable}
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            if(product.isAvailable && isOpen) openProductModal(product); 
-                          }}
-                        >
-                          {product.isAvailable ? 'Adicionar' : 'Esgotado'}
-                        </Button>
-                      </VStack>
-                    </Flex>
-                  ))}
-                </SimpleGrid>
-              </Box>
-            ))}
+      <Box
+        flex="1"
+        overflowY="auto"
+        css={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'contain' }}
+        pb={{ base: cart.length > 0 ? "100px" : "20px", md: "40px" }}
+      >
+        <Container maxW="container.lg" mt={{ base: "-40px", md: "-60px" }} position="relative" zIndex={2}>
+          <Box
+            bg="white"
+            p={{ base: 5, md: 10 }}
+            borderRadius="3xl"
+            boxShadow="0 20px 40px -10px rgba(0,0,0,0.08)"
+            minH="50vh"
+          >
+            <VStack gap={10} align="stretch">
+              {/* BARRA DE BUSCA */}
+              <Input
+                size="lg"
+                placeholder="Buscar produtos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                bg="gray.50"
+                borderRadius="xl"
+                boxShadow="sm"
+              />
+              {orderedCategories.map((cat, index) => (
+                <Box key={cat}>
+                  <Heading
+                    size="xl"
+                    mb={6}
+                    color="gray.800"
+                    fontWeight="900"
+                    letterSpacing="tight"
+                    mt={index === 0 ? 0 : 8}
+                  >
+                    {cat}
+                  </Heading>
 
-            {orderedCategories.length === 0 && (
-              <Center py={20}>
-                <Text color="gray.400" fontSize="lg">Nenhum produto cadastrado nesta loja.</Text>
-              </Center>
-            )}
-          </VStack>
-        </Box>
-      </Container>
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+                    {filteredProducts.filter(p => p.category === cat).map(product => (
+                      <Flex
+                        key={product._id}
+                        p={5}
+                        bg="gray.50"
+                        borderRadius="2xl"
+                        border="1px solid"
+                        borderColor="gray.100"
+                        _hover={{
+                          borderColor: "brand.300",
+                          bg: "white",
+                          boxShadow: "0 10px 30px -10px rgba(0,0,0,0.12)",
+                          transform: "translateY(-4px)"
+                        }}
+                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                        align="center"
+                        gap={4}
+                        cursor={product.isAvailable && isOpen ? "pointer" : "not-allowed"}
+                        opacity={product.isAvailable ? 1 : 0.6}
+                        onClick={() => { if(product.isAvailable && isOpen) openProductModal(product); }}
+                        position="relative"
+                        overflow="hidden"
+                        wrap="nowrap"
+                      >
+                        <VStack align="start" gap={1} flex={1} minW={0} overflow="hidden">
+                          <Text fontWeight="bold" fontSize="lg" color="gray.800" lineHeight="tight" noOfLines={2}>
+                            {product.name}
+                          </Text>
+                          <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
+                            {product.description}
+                          </Text>
+                          <Text color="brand.600" fontWeight="900" fontSize="lg">
+                            R$ {product.price.toFixed(2)}
+                          </Text>
+                        </VStack>
+
+                        <VStack align="end" gap={3} flexShrink={0}>
+                          {product.imageUrl && (
+                            <Image
+                              src={product.imageUrl}
+                              boxSize={{ base: "90px", md: "110px" }}
+                              minW={{ base: "90px", md: "110px" }}
+                              maxW="100%"
+                              objectFit="cover"
+                              borderRadius="xl"
+                              boxShadow="md"
+                            />
+                          )}
+                          <Button
+                            size="xs"
+                            colorPalette="brand"
+                            borderRadius="full"
+                            px={4}
+                            py={4}
+                            fontWeight="bold"
+                            textTransform="uppercase"
+                            letterSpacing="wider"
+                            disabled={!isOpen || !product.isAvailable}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if(product.isAvailable && isOpen) openProductModal(product);
+                            }}
+                          >
+                            {product.isAvailable ? 'Adicionar' : 'Esgotado'}
+                          </Button>
+                        </VStack>
+                      </Flex>
+                    ))}
+                  </SimpleGrid>
+                </Box>
+              ))}
+
+              {orderedCategories.length === 0 && (
+                <Center py={20}>
+                  <Text color="gray.400" fontSize="lg">Nenhum produto cadastrado nesta loja.</Text>
+                </Center>
+              )}
+            </VStack>
+          </Box>
+        </Container>
+      </Box>
 
       {/* FOOTER DA SACOLA (STICKY) COM GLASSMORPHISM */}
       {cart.length > 0 && (
@@ -369,6 +378,6 @@ export default function MenuPage() {
         product={selectedProduct}
         onAddToCart={addToCart}
       />
-    </Box>
+    </Flex>
   );
 }
