@@ -22,6 +22,7 @@ export default function MenuPage() {
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   const [categoryOrder, setCategoryOrder] = useState([]); // Ordem definida pelo lojista
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -114,9 +115,18 @@ export default function MenuPage() {
 
   // Agrupamento por categoria respeitando a ordem do lojista
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [products, searchTerm]);
+    let result = products;
+
+    if (showPromotionsOnly) {
+      result = result.filter(p => p.isPromo || (p.originalPrice && p.originalPrice > p.price));
+    }
+
+    if (searchTerm) {
+      result = result.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+
+    return result;
+  }, [products, searchTerm, showPromotionsOnly]);
 
   const orderedCategories = useMemo(() => {
     const allCategoryNames = [...new Set(filteredProducts.map(p => p.category).filter(Boolean))];
@@ -141,21 +151,6 @@ export default function MenuPage() {
 
   return (
     <Box minH="100vh" bg="gray.100" pb="120px">
-      {/* BANNER DE PEDIDO ATIVO */}
-      {activeOrderId && (
-        <Flex 
-          bg="orange.500" color="white" p={3} justify="center" align="center" gap={3}
-          cursor="pointer" onClick={() => navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } })}
-          _hover={{ bg: "orange.600" }} transition="all 0.2s"
-          position="relative" zIndex={10}
-        >
-          <Icon as={FaExclamationCircle} />
-          <Text fontWeight="bold" fontSize="sm">
-            Você tem um pedido em andamento. Clique aqui para acompanhar!
-          </Text>
-        </Flex>
-      )}
-
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
       <Flex 
         h={{ base: "140px", md: "300px" }}
@@ -194,6 +189,44 @@ export default function MenuPage() {
             </Text>
           </HStack>
         </VStack>
+
+        {/* Botoes Desktop (Header) */}
+        <Flex
+          display={{ base: "none", md: "flex" }}
+          position="absolute"
+          bottom={4}
+          right={8}
+          gap={6}
+          bg="whiteAlpha.200"
+          backdropFilter="blur(10px)"
+          px={6}
+          py={3}
+          borderRadius="full"
+          boxShadow="lg"
+        >
+          <HStack gap={2} cursor="pointer" _hover={{ color: "brand.100" }} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowPromotionsOnly(false); }}>
+            <Icon as={FaHome} />
+            <Text fontWeight="bold" fontSize="sm">Início</Text>
+          </HStack>
+          <HStack gap={2} cursor="pointer" color={showPromotionsOnly ? "brand.100" : "white"} _hover={{ color: "brand.100" }} onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}>
+            <Icon as={FaPercentage} />
+            <Text fontWeight="bold" fontSize="sm">Promoções</Text>
+          </HStack>
+          <HStack gap={2} cursor="pointer" color={activeOrderId ? "orange.300" : "white"} _hover={{ color: "brand.100" }} onClick={() => {
+            if (activeOrderId) {
+              navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } });
+            } else {
+              toaster.create({ title: "Nenhum pedido", description: "Faça login para ver seu histórico.", type: "info" });
+            }
+          }}>
+            <Icon as={activeOrderId ? FaExclamationCircle : FaShoppingBasket} />
+            <Text fontWeight="bold" fontSize="sm">{activeOrderId ? "Pedido Ativo" : "Pedidos"}</Text>
+          </HStack>
+          <HStack gap={2} cursor="pointer" _hover={{ color: "brand.100" }} onClick={() => toaster.create({ title: "Em breve", description: "O cadastro e login de clientes estará disponível em breve.", type: "info" })}>
+            <Icon as={FaUser} />
+            <Text fontWeight="bold" fontSize="sm">Perfil</Text>
+          </HStack>
+        </Flex>
       </Flex>
 
       <Container maxW="container.lg" mt={{ base: "50px", md: "70px" }} position="relative" zIndex={2} pb={{ base: "140px", md: 0 }}>
@@ -260,9 +293,16 @@ export default function MenuPage() {
                         <Text fontSize="sm" color="gray.500" noOfLines={2} lineHeight="short" mb={2}>
                           {product.description}
                         </Text>
-                        <Text color="brand.600" fontWeight="900" fontSize="lg">
-                          R$ {product.price.toFixed(2)}
-                        </Text>
+                        <HStack>
+                          <Text color="brand.600" fontWeight="900" fontSize="lg">
+                            R$ {product.price.toFixed(2)}
+                          </Text>
+                          {(product.isPromo || (product.originalPrice && product.originalPrice > product.price)) && (
+                            <Text color="gray.400" textDecoration="line-through" fontSize="sm">
+                              R$ {product.originalPrice ? product.originalPrice.toFixed(2) : ""}
+                            </Text>
+                          )}
+                        </HStack>
                       </VStack>
                       
                       <VStack align="end" gap={3} flexShrink={0}>
@@ -353,29 +393,33 @@ export default function MenuPage() {
           position="relative"
           zIndex={1}
         >
-          <VStack gap={1} color="brand.500" cursor="pointer">
+          <VStack gap={1} color={!showPromotionsOnly ? "brand.500" : "gray.400"} cursor="pointer" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowPromotionsOnly(false); }}>
             <Icon as={FaHome} boxSize="24px" />
             <Text fontSize="xs" fontWeight="bold">Início</Text>
           </VStack>
 
-          <VStack gap={1} color="gray.400" cursor="pointer">
+          <VStack gap={1} color={showPromotionsOnly ? "brand.500" : "gray.400"} cursor="pointer" onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}>
             <Icon as={FaPercentage} boxSize="24px" />
-            <Text fontSize="xs">Promoções</Text>
+            <Text fontSize="xs" fontWeight={showPromotionsOnly ? "bold" : "normal"}>Promoções</Text>
           </VStack>
 
-          <VStack gap={1} color={cart.length > 0 ? "brand.500" : "gray.400"} cursor="pointer" onClick={() => setIsCartOpen(true)}>
+          <VStack gap={1} color={activeOrderId ? "orange.400" : "gray.400"} cursor="pointer" onClick={() => {
+            if (activeOrderId) {
+              navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } });
+            } else {
+              toaster.create({ title: "Nenhum pedido", description: "Faça login para ver seu histórico.", type: "info" });
+            }
+          }}>
             <Box position="relative">
-              <Icon as={FaShoppingBasket} boxSize="24px" />
-              {cart.length > 0 && (
-                <Box position="absolute" top="-2px" right="-8px" bg="red.500" color="white" borderRadius="full" w="18px" h="18px" display="flex" alignItems="center" justifyContent="center" fontSize="10px" fontWeight="bold">
-                  {cart.length}
-                </Box>
+              <Icon as={activeOrderId ? FaExclamationCircle : FaShoppingBasket} boxSize="24px" />
+              {activeOrderId && (
+                <Box position="absolute" top="-2px" right="-8px" bg="red.500" color="white" borderRadius="full" w="12px" h="12px" display="flex" alignItems="center" justifyContent="center" />
               )}
             </Box>
-            <Text fontSize="xs">Pedidos</Text>
+            <Text fontSize="xs" fontWeight={activeOrderId ? "bold" : "normal"}>{activeOrderId ? "Ativo" : "Pedidos"}</Text>
           </VStack>
 
-          <VStack gap={1} color="gray.400" cursor="pointer">
+          <VStack gap={1} color="gray.400" cursor="pointer" onClick={() => toaster.create({ title: "Em breve", description: "O cadastro e login de clientes estará disponível em breve.", type: "info" })}>
             <Icon as={FaUser} boxSize="24px" />
             <Text fontSize="xs">Perfil</Text>
           </VStack>
