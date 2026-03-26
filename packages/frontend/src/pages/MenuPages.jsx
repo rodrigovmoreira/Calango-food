@@ -152,84 +152,138 @@ export default function MenuPage() {
   return (
     <Box minH="100vh" bg="gray.100" pb="120px">
       {/* HEADER DINÂMICO COM BRANDING DO TENANT  */}
-      <Flex 
-        h={{ base: "140px", md: "300px" }}
-        bg={restaurant.primaryColor || "brand.500"}
-        justify="center" 
-        align="center"
-        color="white"
-        textAlign="center"
-        px={4}
-        position="relative"
-      >
-        {/* Logo Overlap Container */}
-        <VStack gap={2} position="absolute" bottom={{ base: "-45px", md: "-60px" }} zIndex={3}>
-          {restaurant.logoUrl && (
-            <Image 
-              src={restaurant.logoUrl} 
-              h={{ base: "90px", md: "120px" }}
-              w={{ base: "90px", md: "120px" }}
-              objectFit="cover" 
-              borderRadius="full" 
-              border="4px solid white"
-              boxShadow="xl"
-              bg="white"
-            />
-          )}
-        </VStack>
-
-        <VStack gap={3} position="relative" top={{ base: "-10px", md: "-20px" }}>
-          <Heading size="3xl" fontWeight="900" letterSpacing="tight" textShadow="0px 2px 10px rgba(0,0,0,0.2)">
-            {restaurant.name}
-          </Heading>
-          <HStack bg="rgba(0,0,0,0.2)" backdropFilter="blur(5px)" px={5} py={1.5} borderRadius="full">
-            <Icon as={FaClock} />
-            <Text fontSize="xs" fontWeight="bold" letterSpacing="wide">
-              {isOpen ? "LOJA ABERTA" : "LOJA FECHADA"}
-            </Text>
-          </HStack>
-        </VStack>
-
-        {/* Botoes Desktop (Header) */}
-        <Flex
-          display={{ base: "none", md: "flex" }}
-          position="absolute"
-          bottom={4}
-          right={8}
-          gap={6}
-          bg="whiteAlpha.200"
-          backdropFilter="blur(10px)"
-          px={6}
-          py={3}
-          borderRadius="full"
-          boxShadow="lg"
+      <Box position="relative" bg="white" pb={4} borderBottom="1px solid" borderColor="gray.200" boxShadow="sm">
+        {/* Banner de Fundo (Capa) */}
+        <Box
+          h={{ base: "140px", md: "240px" }}
+          w="100%"
+          bg={restaurant.primaryColor || "brand.500"}
+          backgroundImage={restaurant.coverImageUrl ? `url(${restaurant.coverImageUrl})` : "none"}
+          backgroundSize="cover"
+          backgroundPosition="center"
+          position="relative"
         >
-          <HStack gap={2} cursor="pointer" _hover={{ color: "brand.100" }} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowPromotionsOnly(false); }}>
-            <Icon as={FaHome} />
-            <Text fontWeight="bold" fontSize="sm">Início</Text>
-          </HStack>
-          <HStack gap={2} cursor="pointer" color={showPromotionsOnly ? "brand.100" : "white"} _hover={{ color: "brand.100" }} onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}>
-            <Icon as={FaPercentage} />
-            <Text fontWeight="bold" fontSize="sm">Promoções</Text>
-          </HStack>
-          <HStack gap={2} cursor="pointer" color={activeOrderId ? "orange.300" : "white"} _hover={{ color: "brand.100" }} onClick={() => {
-            if (activeOrderId) {
-              navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } });
-            } else {
-              toaster.create({ title: "Nenhum pedido", description: "Faça login para ver seu histórico.", type: "info" });
-            }
-          }}>
-            <Icon as={activeOrderId ? FaExclamationCircle : FaShoppingBasket} />
-            <Text fontWeight="bold" fontSize="sm">{activeOrderId ? "Pedido Ativo" : "Pedidos"}</Text>
-          </HStack>
-          <HStack gap={2} cursor="pointer" _hover={{ color: "brand.100" }} onClick={() => toaster.create({ title: "Em breve", description: "O cadastro e login de clientes estará disponível em breve.", type: "info" })}>
-            <Icon as={FaUser} />
-            <Text fontWeight="bold" fontSize="sm">Perfil</Text>
-          </HStack>
-        </Flex>
-      </Flex>
+          <Box position="absolute" inset="0" bg="blackAlpha.300" />
+        </Box>
 
-      <Container maxW="container.lg" mt={{ base: "50px", md: "70px" }} position="relative" zIndex={2} pb={{ base: "140px", md: 0 }}>
+        {/* Container Principal de Informações do Restaurante */}
+        <Container maxW="container.lg" position="relative" zIndex={3}>
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            align={{ base: "center", md: "flex-end" }}
+            justify="space-between"
+            mt={{ base: "-45px", md: "-50px" }}
+            px={{ base: 0, md: 4 }}
+          >
+            {/* Esquerda: Logo e Detalhes */}
+            <Flex direction={{ base: "column", md: "row" }} align="center" gap={{ base: 3, md: 6 }}>
+              {restaurant.logoUrl ? (
+                <Image
+                  src={restaurant.logoUrl}
+                  h={{ base: "90px", md: "140px" }}
+                  w={{ base: "90px", md: "140px" }}
+                  objectFit="cover"
+                  borderRadius="full"
+                  border="4px solid white"
+                  boxShadow="xl"
+                  bg="white"
+                  zIndex={2}
+                />
+              ) : (
+                <Flex
+                  h={{ base: "90px", md: "140px" }}
+                  w={{ base: "90px", md: "140px" }}
+                  bg="white"
+                  borderRadius="full"
+                  border="4px solid white"
+                  boxShadow="xl"
+                  align="center"
+                  justify="center"
+                  zIndex={2}
+                >
+                  <Text fontSize="2xl" fontWeight="bold" color="brand.500">
+                    {restaurant.name.charAt(0)}
+                  </Text>
+                </Flex>
+              )}
+
+              <VStack align={{ base: "center", md: "start" }} gap={1} mt={{ base: 0, md: 10 }}>
+                <Heading size={{ base: "xl", md: "2xl" }} fontWeight="900" color={{ base: "gray.800", md: "gray.800" }} letterSpacing="tight">
+                  {restaurant.name}
+                </Heading>
+                <HStack mt={1}>
+                  <Badge colorPalette={isOpen ? "green" : "red"} variant="solid" px={3} py={1} borderRadius="full" fontSize="xs" fontWeight="bold">
+                    <Flex align="center" gap={1}>
+                      <Icon as={FaClock} />
+                      {isOpen ? "LOJA ABERTA" : "LOJA FECHADA"}
+                    </Flex>
+                  </Badge>
+                </HStack>
+              </VStack>
+            </Flex>
+
+            {/* Direita: Botões Desktop */}
+            <Flex
+              display={{ base: "none", md: "flex" }}
+              gap={3}
+              mt={{ base: 0, md: 8 }}
+            >
+              <Button
+                variant={!showPromotionsOnly ? "solid" : "subtle"}
+                colorPalette="brand"
+                onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowPromotionsOnly(false); }}
+                borderRadius="full"
+                size="sm"
+                fontWeight="bold"
+              >
+                <Icon as={FaHome} mr={1} />
+                Início
+              </Button>
+              <Button
+                variant={showPromotionsOnly ? "solid" : "subtle"}
+                colorPalette="brand"
+                onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
+                borderRadius="full"
+                size="sm"
+                fontWeight="bold"
+              >
+                <Icon as={FaPercentage} mr={1} />
+                Promoções
+              </Button>
+              <Button
+                variant={activeOrderId ? "solid" : "subtle"}
+                colorPalette={activeOrderId ? "orange" : "brand"}
+                onClick={() => {
+                  if (activeOrderId) {
+                    navigate(`/pedido/${activeOrderId}`, { state: { restaurantName: restaurant.name, slug } });
+                  } else {
+                    toaster.create({ title: "Nenhum pedido", description: "Faça login para ver seu histórico.", type: "info" });
+                  }
+                }}
+                borderRadius="full"
+                size="sm"
+                fontWeight="bold"
+              >
+                <Icon as={activeOrderId ? FaExclamationCircle : FaShoppingBasket} mr={1} />
+                {activeOrderId ? "Pedido Ativo" : "Pedidos"}
+              </Button>
+              <Button
+                variant="subtle"
+                colorPalette="brand"
+                onClick={() => toaster.create({ title: "Em breve", description: "O cadastro e login de clientes estará disponível em breve.", type: "info" })}
+                borderRadius="full"
+                size="sm"
+                fontWeight="bold"
+              >
+                <Icon as={FaUser} mr={1} />
+                Perfil
+              </Button>
+            </Flex>
+          </Flex>
+        </Container>
+      </Box>
+
+      <Container maxW="container.lg" mt={{ base: "30px", md: "40px" }} position="relative" zIndex={2} pb={{ base: "140px", md: 0 }}>
         <Box 
           bg="white" 
           p={{ base: 5, md: 10 }} 
@@ -297,9 +351,9 @@ export default function MenuPage() {
                           <Text color="brand.600" fontWeight="900" fontSize="lg">
                             R$ {product.price.toFixed(2)}
                           </Text>
-                          {(product.isPromo || (product.originalPrice && product.originalPrice > product.price)) && (
+                          {(product.originalPrice && product.originalPrice > product.price) && (
                             <Text color="gray.400" textDecoration="line-through" fontSize="sm">
-                              R$ {product.originalPrice ? product.originalPrice.toFixed(2) : ""}
+                              R$ {product.originalPrice.toFixed(2)}
                             </Text>
                           )}
                         </HStack>
