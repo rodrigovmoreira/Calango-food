@@ -1,20 +1,6 @@
 import Product from '../models/Product.js';
-import multer from 'multer';
-import { uploadImage } from '../services/upload.js';
-
-// Setup multer logic using memory storage for Firebase upload
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-}).single('image');
-
 
 class ProductController {
-  constructor() {
-    this.uploadImage = this.uploadImage.bind(this);
-  }
   // Rota pública para listar produtos do cardápio de um restaurante específico
   async getPublicProducts(req, res) {
     try {
@@ -84,27 +70,6 @@ class ProductController {
     }
   }
 
-  // Upload product image to Firebase Storage
-  uploadImage(req, res) {
-    upload(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ error: 'Erro ao fazer upload da imagem', details: err.message });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ error: 'Nenhuma imagem enviada' });
-      }
-
-      try {
-        const tenantId = req.tenantId;
-        const imageUrl = await uploadImage(req.file, tenantId);
-        res.status(200).json({ imageUrl });
-      } catch (error) {
-        console.error('Error uploading image to Firebase:', error);
-        res.status(500).json({ error: 'Erro interno ao salvar imagem', details: error.message });
-      }
-    });
-  }
 }
 
 export default new ProductController();
