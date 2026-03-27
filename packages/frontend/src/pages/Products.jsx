@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, Heading, Table, Button, Switch, IconButton, Flex, Badge, 
+import axios from 'axios';
+import {
+  Box, Heading, Table, Button, Switch, IconButton, Flex, Badge,
   VStack, HStack, Text, Input, Textarea
 } from '@chakra-ui/react';
 import { Field } from '../components/ui/field';
@@ -8,7 +9,7 @@ import { DialogRoot, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Di
 import { Toaster, toaster } from "../components/ui/toaster";
 import { Edit2, Trash2, Plus, GripVertical, UploadCloud } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
-import { foodAPI } from '../services/api';
+import { foodAPI, uploadAPI } from '../services/api';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -47,7 +48,7 @@ export default function Products() {
     try {
       const { data } = await foodAPI.getCategories();
       setCategories(data);
-    } catch {}
+    } catch { }
   };
 
   const handleOpenModal = (product = null) => {
@@ -114,28 +115,44 @@ export default function Products() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
     setUploading(true);
 
     try {
-      const { data } = await foodAPI.uploadImage(formData);
-      setImageUrl(data.imageUrl);
+      // 1. Pede a URL assinada para o Squamata
+      const { data: squamataData } = await uploadAPI.getSignedUrl(file.name, file.type);
+      const { uploadUrl, filePath } = squamataData;
+
+      // 2. Faz o upload DIRETO do navegador para o bucket usando a URL assinada
+      // Usamos axios puro aqui porque não queremos mandar os cabeçalhos de autenticação do foodAPI para o Google
+      await axios.put(uploadUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+
+      // 3. Monta a URL pública final para salvar no produto
+      // O padrão do Firebase Storage para leitura pública é esse:
+      const bucketName = import.meta.env.VITE_FIREBASE_BUCKET; // Ex: seu-projeto.appspot.com
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(filePath)}?alt=media`;
+
+      // 4. Atualiza o estado da imagem no formulário
+      setImageUrl(publicUrl);
       toaster.create({ title: "Imagem carregada com sucesso", type: "success" });
+
     } catch (err) {
+      console.error(err);
       toaster.create({ title: "Erro ao carregar imagem", description: err.message, type: "error" });
     } finally {
       setUploading(false);
     }
   };
-
   const handleSave = async () => {
     if (!name || price === '' || !category) {
       return toaster.create({ title: "Aviso", description: "Nome, preço e categoria são obrigatórios", type: "warning" });
     }
 
-    const payload = { 
-      name, description, price: Number(price), category, imageUrl, isAvailable, attributeGroups 
+    const payload = {
+      name, description, price: Number(price), category, imageUrl, isAvailable, attributeGroups
     };
 
     try {
@@ -180,7 +197,7 @@ export default function Products() {
       <Box p={8}>
         <Flex justify="space-between" align="center" mb={8}>
           <Heading size="xl" color="brand.500">Cardápio Inteligente</Heading>
-          
+
           <DialogRoot open={isModalOpen} onOpenChange={(e) => setIsModalOpen(e.open)} size="xl">
             <DialogTrigger asChild>
               <Button colorPalette="brand" onClick={() => handleOpenModal()}><Plus /> Novo Produto</Button>
@@ -194,7 +211,7 @@ export default function Products() {
                 <VStack spacing={4} align="stretch" gap={5}>
                   <Flex gap={4}>
                     <Field label="Nome do Produto *" flex={2}>
-                      <Input placeholder="Ex: Pizza Gigante (8 Pedaços)" value={name} onChange={(e) => setName(e.target.value)} bg="white"/>
+                      <Input placeholder="Ex: Pizza Gigante (8 Pedaços)" value={name} onChange={(e) => setName(e.target.value)} bg="white" />
                     </Field>
                     <Field label="Preço Base (A partir de) *" flex={1}>
                       <Box position="relative" w="full">
@@ -261,7 +278,7 @@ export default function Products() {
                   <Field label="Descrição detalhada e atrativa (Opcional)">
                     <Textarea placeholder="Descreva os ingredientes ou diferenciais..." value={description} onChange={(e) => setDescription(e.target.value)} bg="white" rows={3} />
                   </Field>
-                  
+
                   <Box mt={6} bg="gray.50" p={6} borderRadius="2xl" border="1px solid" borderColor="gray.100">
                     <Flex justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.200" pb={4} mb={6}>
                       <VStack align="start" gap={0}>
@@ -270,22 +287,22 @@ export default function Products() {
                       </VStack>
                       <Button size="sm" colorPalette="brand" variant="outline" onClick={addGroup}>+ Adicionar Grupo</Button>
                     </Flex>
-                    
+
                     {attributeGroups.map((group, gIdx) => (
                       <Box key={gIdx} p={5} mb={6} borderWidth="1px" borderRadius="xl" bg="white" position="relative" shadow="sm">
                         <IconButton position="absolute" top={3} right={3} size="xs" colorPalette="red" variant="ghost" onClick={() => removeGroup(gIdx)}>
                           <Trash2 size={16} />
                         </IconButton>
-                        
+
                         <Flex gap={4} mb={6} pr={8} align="flex-end">
                           <Field label="Nome do Grupo" flex={2}>
-                            <Input placeholder="Ex: Escolha seus Sabores (Meio a Meio)" value={group.name} onChange={(e) => updateGroup(gIdx, 'name', e.target.value)} bg="gray.50"/>
+                            <Input placeholder="Ex: Escolha seus Sabores (Meio a Meio)" value={group.name} onChange={(e) => updateGroup(gIdx, 'name', e.target.value)} bg="gray.50" />
                           </Field>
                           <Field label="Mínimo" flex={1}>
-                            <Input type="number" placeholder="Ex: 1" value={group.minOptions} onChange={(e) => updateGroup(gIdx, 'minOptions', Number(e.target.value))} bg="gray.50"/>
+                            <Input type="number" placeholder="Ex: 1" value={group.minOptions} onChange={(e) => updateGroup(gIdx, 'minOptions', Number(e.target.value))} bg="gray.50" />
                           </Field>
                           <Field label="Máximo" flex={1}>
-                            <Input type="number" placeholder="Ex: 2" value={group.maxOptions} onChange={(e) => updateGroup(gIdx, 'maxOptions', Number(e.target.value))} bg="gray.50"/>
+                            <Input type="number" placeholder="Ex: 2" value={group.maxOptions} onChange={(e) => updateGroup(gIdx, 'maxOptions', Number(e.target.value))} bg="gray.50" />
                           </Field>
                         </Flex>
 
@@ -295,14 +312,14 @@ export default function Products() {
                               <Flex align="center" gap={3} flex={2}>
                                 <GripVertical size={16} color="#CBD5E0" />
                                 <Field label={oIdx === 0 ? "Opção" : ""} w="full">
-                                  <Input size="md" placeholder="Ex: Meia Calabresa" value={opt.name} onChange={(e) => updateOption(gIdx, oIdx, 'name', e.target.value)} bg="white"/>
+                                  <Input size="md" placeholder="Ex: Meia Calabresa" value={opt.name} onChange={(e) => updateOption(gIdx, oIdx, 'name', e.target.value)} bg="white" />
                                 </Field>
                               </Flex>
                               <Field label={oIdx === 0 ? "Preço Extra" : ""} w="160px">
-                                  <Box position="relative" w="full">
-                                    <Text position="absolute" left={3} top="50%" transform="translateY(-50%)" color="gray.500" fontWeight="bold" fontSize="sm" zIndex={1}>R$</Text>
-                                    <Input size="md" type="number" placeholder="0.00" value={opt.price} onChange={(e) => updateOption(gIdx, oIdx, 'price', e.target.value === '' ? '' : Number(e.target.value))} w="full" pl={9} bg="white" />
-                                  </Box>
+                                <Box position="relative" w="full">
+                                  <Text position="absolute" left={3} top="50%" transform="translateY(-50%)" color="gray.500" fontWeight="bold" fontSize="sm" zIndex={1}>R$</Text>
+                                  <Input size="md" type="number" placeholder="0.00" value={opt.price} onChange={(e) => updateOption(gIdx, oIdx, 'price', e.target.value === '' ? '' : Number(e.target.value))} w="full" pl={9} bg="white" />
+                                </Box>
                               </Field>
                               <IconButton mb={oIdx === 0 ? "2px" : "0"} size="sm" colorPalette="red" variant="ghost" onClick={() => removeOption(gIdx, oIdx)}>
                                 <Trash2 size={16} />
@@ -342,16 +359,16 @@ export default function Products() {
                 {products.map((product) => (
                   <Table.Row key={product._id} opacity={product.isAvailable ? 1 : 0.6}>
                     <Table.Cell>
-                      <Switch.Root 
-                        checked={product.isAvailable} 
+                      <Switch.Root
+                        checked={product.isAvailable}
                         onChange={() => toggleAvailability(product)}
                         colorPalette="brand"
                         size="md"
                       >
-                         <Switch.HiddenInput />
-                         <Switch.Control>
-                           <Switch.Thumb />
-                         </Switch.Control>
+                        <Switch.HiddenInput />
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
                       </Switch.Root>
                     </Table.Cell>
                     <Table.Cell fontWeight="bold">{product.name}</Table.Cell>
