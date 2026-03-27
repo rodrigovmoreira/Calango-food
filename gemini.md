@@ -211,3 +211,15 @@
 - [ ] Entregador confirma entrega pelo WhatsApp (mensagem ou botão)
 - [ ] Status do pedido muda para `delivered`
 - [ ] Atualizar `deliveriesToday` do entregador
+
+
+# 🐊 Calango Food - Documentação de contexto.
+
+## 📌 Visão geral 
+O **Calango Food** é uma plataforma de delivery de comida que permite que os restaurantes cadastrem seus cardápios e recebam pedidos de clientes. 
+
+## 🚀 Arquitetura e Tech Stack
+- **Runtime:** Node.js v20+ (ESM) para suporte nativo a Top-Level Await e módulos modernos.
+- **Framework:** Express.js para roteamento leve e performático.
+- **Banco de Dados:** MongoDB com Mongoose ODM para persistência de dados.
+- **Autenticação:** JWT (JSON Web Tokens) para autenticação de usuários.

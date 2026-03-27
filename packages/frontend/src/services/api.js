@@ -84,4 +84,17 @@ export const foodAPI = {
   disconnectWhatsApp: () => api.post('/api/whatsapp/disconnect'),
 };
 
+export const uploadAPI = {
+  getSignedUrl: (fileName, contentType) => axios.post(
+    import.meta.env.VITE_SQUAMATA_URL || 'http://localhost:3005/generate-upload-url',
+    { fileName, contentType },
+    {
+      headers: {
+        // A chave VIP que criamos no Squamata
+        Authorization: import.meta.env.VITE_SQUAMATA_SECRET 
+      }
+    }
+  )
+};
+
 export default api;

@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import WppService from './services/notifications/WppService.js';
 import deliveryController from './controllers/DeliveryController.js';
@@ -33,6 +34,8 @@ app.use('/api/auth', authRoutes);
 
 // Inicializa o motor de WhatsApp passando o Socket.io
 WppService.initialize(io);
+
+showBanner();
 
 io.on('connection', (socket) => {
   // O frontend deve enviar o tenantId na conexão
@@ -77,7 +80,7 @@ import categoryController from './controllers/CategoryController.js';
 app.get('/api/products/public/:tenantId', productController.getPublicProducts);
 app.get('/api/products', protect, productController.getProducts);
 app.post('/api/products', protect, productController.createProduct);
-app.post('/api/products/upload', protect, productController.uploadImage);
+//app.post('/api/products/upload', protect, productController.uploadImage);
 app.put('/api/products/:id', protect, productController.updateProduct);
 app.delete('/api/products/:id', protect, productController.deleteProduct);
 
@@ -103,4 +106,19 @@ app.post('/api/whatsapp/connect', protect, async (req, res) => {
 // 6. Inicialização do Servidor
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Calango-food rodando em http://192.168.0.167:${PORT}`);
-});     
+});
+
+function showBanner() {
+  try {
+    const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8');
+    // Divide o banner em linhas e pinta cada uma de verde
+    const lines = banner.split('\n');
+    lines.forEach(line => {
+      console.log('\x1b[92m%s\x1b[0m', line);
+    });
+
+    console.log('\x1b[32m%s\x1b[0m', '      Calango Food Online!\n');
+  } catch (err) {
+    console.log('Calango Food Starting...');
+  }
+}
