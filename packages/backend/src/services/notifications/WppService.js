@@ -83,34 +83,34 @@ class WppService {
       try {
         const text = msg.body.toLowerCase().trim();
         const from = msg.from; // Número completo que enviou, ex: "5511999999999@c.us"
-        
+
         // Verifica se é um comando válido
         const isOnlineCmd = ['online', 'disponivel', 'disponível', 'on', 'trabalhar'].includes(text);
         const isOfflineCmd = ['offline', 'indisponivel', 'indisponível', 'off', 'parar'].includes(text);
-        
+
         if (isOnlineCmd || isOfflineCmd) {
           // Extrai apenas os números
-          const phone = from.replace(/\D/g, ''); 
-          
+          const phone = from.replace(/\D/g, '');
+
           // Busca um entregador no banco que tenha e esse WhatsApp cadastrado nesse tenant
-          const driver = await DeliveryDriver.findOne({ 
-            tenantId, 
-            whatsapp: phone 
+          const driver = await DeliveryDriver.findOne({
+            tenantId,
+            whatsapp: phone
           });
 
           if (driver) {
             if (driver.isActive === false) {
-               await msg.reply(`⚠️ Olá ${driver.name}, seu cadastro encontra-se *INATIVO* no sistema. Você não receberá corridas até que o restaurante reative sua conta.`);
-               return;
+              await msg.reply(`⚠️ Olá ${driver.name}, seu cadastro encontra-se *INATIVO* no sistema. Você não receberá corridas até que o restaurante reative sua conta.`);
+              return;
             }
 
             const newStatus = isOnlineCmd ? 'disponivel' : 'offline';
             driver.status = newStatus;
             await driver.save();
-            
+
             // Avisa o painel do Desktop via Socket.io para recarregar a tela (opcional mas ideal para reatividade)
             this.io.to(tenantId.toString()).emit('driver_status_changed', { driverId: driver._id, status: newStatus });
-            
+
             // Responde o entregador confirmando a mudança
             await msg.reply(`✅ Olá ${driver.name}, seu status foi atualizado para *${newStatus.toUpperCase()}* no sistema Calango-food.`);
           }
@@ -133,14 +133,26 @@ class WppService {
     }
   }
 
-  async sendMessage(tenantId, to, message) {
-    const session = this.sessions.get(tenantId.toString());
-    if (session && session.client && session.status === 'connected') {
-      try {
-        await session.client.sendMessage(`${to}@c.us`, message);
-      } catch (err) {
-        console.error(`Erro ao enviar WhatsApp para ${to}:`, err);
+  async sendMessage(number, message) {
+    try {
+      // Limpa o número de qualquer caractere não numérico (parênteses, espaços, traços)
+      let formattedNumber = number.replace(/\D/g, '');
+
+      // Garante o prefixo do Brasil (55)
+      if (!formattedNumber.startsWith('55')) {
+        formattedNumber = '55' + formattedNumber;
       }
+
+      // Adiciona o sufixo necessário para a biblioteca
+      if (!formattedNumber.endsWith('@c.us')) {
+        formattedNumber = `${formattedNumber}@c.us`;
+      }
+
+      // Agora sim envia para o cliente do WhatsApp
+      await this.client.sendMessage(formattedNumber, message);
+      console.log(`✅ Mensagem enviada para: ${formattedNumber}`);
+    } catch (error) {
+      console.error(`❌ Erro ao enviar WhatsApp para ${number}:`, error.message);
     }
   }
 }
