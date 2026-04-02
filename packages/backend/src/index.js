@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import WppService from './services/notifications/WppService.js';
 import deliveryController from './controllers/DeliveryController.js';
 import orderController from './controllers/OrderController.js';
-import webhookController from './controllers/WebhookController.js';
+//import webhookController from './controllers/WebhookController.js';
 import authRoutes from './routes/authRoutes.js';
 import { protect } from './middlewares/authMiddleware.js';
 
@@ -96,7 +96,7 @@ import * as authController from './controllers/authController.js';
 app.get('/api/store/public/:tenantId', authController.getPublicProfile);
 app.get('/api/store/menu/:slug', authController.getPublicMenu);
 
-app.post('/api/webhooks/payments', webhookController.handlePayment);
+//app.post('/api/webhooks/payments', webhookController.handlePayment);
 // Rota para o usuário conectar o WhatsApp dele
 app.post('/api/whatsapp/connect', protect, async (req, res) => {
   WppService.startSession(req.tenantId);

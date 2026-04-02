@@ -1,7 +1,7 @@
 // packages/backend/src/controllers/OrderController.js
 import Order from '../models/Order.js';
 import Product from '../models/Product.js'; // Importação vital para validação de preço
-import { PaymentFactory } from '../services/payments/PaymentFactory.js';
+import { GatewayService } from '../services/GatewayService.js';
 
 class OrderController {
 
@@ -170,29 +170,23 @@ class OrderController {
         }
       });
 
-      // 3. Processamento via Strategy Pattern
-      const processor = PaymentFactory.create(methodToUse);
-      const paymentResult = await processor.process(calculatedTotal, newOrder._id);
+      // 3. Solicitação de Pagamento ao Calango Gateway (Microsserviço)
+      // Buscamos as credenciais de pagamento do lojista (Tenant)
+      const SystemUser = (await import('../models/SystemUser.js')).default;
+      const tenantData = await SystemUser.findById(finalTenantId).select('paymentConfig');
+      
+      // Chamada HTTP para a porta 3010
+      const paymentResult = await GatewayService.solicitarPagamento(newOrder, tenantData?.paymentConfig || {});
 
-      if (!paymentResult.success) {
-        newOrder.payment.status = 'failed';
-        newOrder.payment.failureMessage = paymentResult.error || 'Transação recusada.';
-        await newOrder.save();
-
-        return res.status(402).json({
-          status: 'fail',
-          message: 'Pagamento não autorizado.',
-          error: newOrder.payment.failureMessage
-        });
-      }
-
-      // 4. Sucesso no processamento e registro do Gateway
-      // TEMPORÁRIO MVP: Auto-aprova pagamento. No futuro, dependerá do webhook real.
-      newOrder.payment.status = 'paid';
+      // Salva os dados de intenção retornados pelo Gateway (Status continua 'pending')
       newOrder.payment.transactionId = paymentResult.transactionId;
       newOrder.payment.gatewayProvider = paymentResult.gateway;
-      newOrder.delivery.status = 'paid';
-      newOrder.history.push({ status: 'paid' });
+      
+      if (paymentResult.qrCode) {
+        newOrder.payment.qrCode = paymentResult.qrCode;
+        newOrder.payment.copyPaste = paymentResult.copyPaste;
+      }
+
       await newOrder.save();
 
       // Dispara mensagem WhatsApp de confirmação de recebimento do pedido
@@ -215,13 +209,7 @@ class OrderController {
 
     } catch (error) {
       console.error("❌ Erro Crítico no Pedido:", error.message);
-      
-      if (newOrder) {
-        newOrder.payment.status = 'failed';
-        newOrder.payment.failureMessage = error.message;
-        await newOrder.save();
-      }
-      
+
       res.status(500).json({ 
         error: "Falha ao processar pedido", 
         details: error.message 
