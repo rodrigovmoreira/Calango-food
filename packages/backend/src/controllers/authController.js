@@ -64,27 +64,27 @@ export const getProfile = async (req, res) => {
   try {
     // No seu middleware de proteção, o ID do usuário logado é injetado como req.tenantId ou req.userId
     // Certifique-se de usar o mesmo nome definido no seu middleware de 'protect'
-    const userId = req.tenantId || req.userId; 
+    const userId = req.tenantId || req.userId;
 
     const user = await SystemUser.findById(userId);
-    
+
     // Se o usuário não existe, retornamos 404 em vez de deixar o código quebrar e dar 500
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
-    
+
     res.json({
-      id: user._id, 
-      name: user.name, 
+      id: user._id,
+      name: user.name,
       email: user.email,
-      storeName: user.storeName || 'Calango Food Delivery', 
+      storeName: user.storeName || 'Calango Food Delivery',
       slug: user.slug,
-      isOpen: user.isOpen ?? true, 
+      isOpen: user.isOpen ?? true,
       operatingHours: user.operatingHours || []
     });
   } catch (err) {
     // Isso vai te mostrar no console do terminal EXATAMENTE o que quebrou
-    console.error("Erro no getProfile:", err); 
+    console.error("Erro no getProfile:", err);
     res.status(500).json({ message: 'Erro interno ao buscar perfil', error: err.message });
   }
 };
@@ -92,9 +92,9 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { storeName, isOpen, operatingHours } = req.body;
-    
+
     // PONTO DE CORREÇÃO 1: Use req.user._id ou req.tenantId (garanta que venha do middleware)
-    const userId = req.user?._id || req.tenantId; 
+    const userId = req.user?._id || req.tenantId;
 
     // PONTO DE CORREÇÃO 2: Troque findByIdAndUpdate por este bloco para debugar:
     const user = await SystemUser.findById(userId);
@@ -105,12 +105,12 @@ export const updateProfile = async (req, res) => {
     if (operatingHours) user.operatingHours = operatingHours;
 
     // Isso vai disparar o middleware de SLUG que criamos no SystemUser.js
-    await user.save(); 
+    await user.save();
 
     res.json(user);
   } catch (err) {
     // PONTO DE CORREÇÃO 3: Mude o log para ver o erro real no seu terminal
-    console.error("ERRO NO UPDATE PROFILE:", err); 
+    console.error("ERRO NO UPDATE PROFILE:", err);
     res.status(500).json({ message: "Erro interno", error: err.message });
   }
 };
@@ -120,39 +120,39 @@ export const getPublicProfile = async (req, res) => {
     const { tenantId } = req.params;
     const user = await SystemUser.findById(tenantId);
     if (!user) return res.status(404).json({ message: 'Store not found' });
-    
+
     // Calcula se está aberto agora baseado nos horários e no manual isOpen
     let currentlyOpen = false;
-    
+
     if (user.isOpen) {
       if (user.operatingHours && user.operatingHours.length > 0) {
-         const now = new Date();
-         // Ajuste de Timezone se necessário (simplificado para servidor local)
-         const dayOfWeek = now.getDay();
-         const todaySchedule = user.operatingHours.find(h => h.day === dayOfWeek);
-         
-         if (todaySchedule && todaySchedule.isActive) {
-            const currentHourMinutes = now.getHours() * 60 + now.getMinutes();
-            const [openH, openM] = todaySchedule.openTime.split(':').map(Number);
-            const [closeH, closeM] = todaySchedule.closeTime.split(':').map(Number);
-            const openMinutes = openH * 60 + openM;
-            let closeMinutes = closeH * 60 + closeM;
-            
-            // Lida com fechamento no dia seguinte (ex: 18:00 as 02:00)
-            if (closeMinutes < openMinutes) {
-               closeMinutes += 24 * 60;
-            }
-            let checkMinutes = currentHourMinutes;
-            if (openMinutes > closeMinutes && checkMinutes < closeMinutes) { 
-                checkMinutes += 24 * 60;
-            }
-            
-            if (checkMinutes >= openMinutes && checkMinutes <= closeMinutes) {
-               currentlyOpen = true;
-            }
-         }
+        const now = new Date();
+        // Ajuste de Timezone se necessário (simplificado para servidor local)
+        const dayOfWeek = now.getDay();
+        const todaySchedule = user.operatingHours.find(h => h.day === dayOfWeek);
+
+        if (todaySchedule && todaySchedule.isActive) {
+          const currentHourMinutes = now.getHours() * 60 + now.getMinutes();
+          const [openH, openM] = todaySchedule.openTime.split(':').map(Number);
+          const [closeH, closeM] = todaySchedule.closeTime.split(':').map(Number);
+          const openMinutes = openH * 60 + openM;
+          let closeMinutes = closeH * 60 + closeM;
+
+          // Lida com fechamento no dia seguinte (ex: 18:00 as 02:00)
+          if (closeMinutes < openMinutes) {
+            closeMinutes += 24 * 60;
+          }
+          let checkMinutes = currentHourMinutes;
+          if (openMinutes > closeMinutes && checkMinutes < closeMinutes) {
+            checkMinutes += 24 * 60;
+          }
+
+          if (checkMinutes >= openMinutes && checkMinutes <= closeMinutes) {
+            currentlyOpen = true;
+          }
+        }
       } else {
-         currentlyOpen = true;
+        currentlyOpen = true;
       }
     }
 
@@ -168,7 +168,7 @@ export const getPublicProfile = async (req, res) => {
 export const getPublicMenu = async (req, res) => {
   try {
     const { slug } = req.params;
-    
+
     // Tenta achar por slug ou por ID como fallback
     let user;
     if (slug.match(/^[0-9a-fA-F]{24}$/)) {
@@ -178,7 +178,7 @@ export const getPublicMenu = async (req, res) => {
     }
 
     if (!user) return res.status(404).json({ message: 'Store not found' });
-    
+
     // Simplificando o envio do status aberto (MenuPages usa OperatingHours para validar no front)
     // Mas também vamos enviar a flag global
     const store = {
@@ -201,5 +201,37 @@ export const getPublicMenu = async (req, res) => {
   } catch (err) {
     console.error('Error fetching public menu:', err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const updatePaymentConfig = async (req, res) => {
+  try {
+    // O ID do lojista vem do token JWT decodificado pelo middleware 'protect'
+    const tenantId = req.tenantId;
+    const { pixProvider, apiKey } = req.body;
+
+    // Atualiza apenas os campos específicos dentro do objeto paymentConfig
+    const updatedUser = await SystemUser.findByIdAndUpdate(
+      tenantId,
+      {
+        $set: {
+          'paymentConfig.pixProvider': pixProvider || 'manual',
+          'paymentConfig.apiKey': apiKey || ''
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'Lojista não encontrado.' });
+    }
+
+    res.json({
+      message: "Configurações de pagamento atualizadas com sucesso!",
+      paymentConfig: updatedUser.paymentConfig
+    });
+  } catch (error) {
+    console.error('❌ Erro ao atualizar configurações de pagamento:', error);
+    res.status(500).json({ error: "Erro interno ao salvar configurações de pagamento." });
   }
 };
