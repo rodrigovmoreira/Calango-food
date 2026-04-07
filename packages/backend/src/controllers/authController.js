@@ -80,7 +80,8 @@ export const getProfile = async (req, res) => {
       storeName: user.storeName || 'Calango Food Delivery',
       slug: user.slug,
       isOpen: user.isOpen ?? true,
-      operatingHours: user.operatingHours || []
+      operatingHours: user.operatingHours || [],
+      paymentConfig: user.paymentConfig || { pixProvider: 'manual', apiKey: '' }
     });
   } catch (err) {
     // Isso vai te mostrar no console do terminal EXATAMENTE o que quebrou

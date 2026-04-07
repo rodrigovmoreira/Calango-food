@@ -38,6 +38,7 @@ export const authAPI = {
   logout: () => api.post('/api/auth/logout'),
   getProfile: () => api.get('/api/auth/profile'),
   updateProfile: (data) => api.put('/api/auth/profile', data),
+  updatePaymentConfig: (data) => api.put('/api/auth/payment-config', data),
 };
 
 // --- Rotas de Negócio (Calango-food) ---

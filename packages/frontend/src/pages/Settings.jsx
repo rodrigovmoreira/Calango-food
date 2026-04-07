@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import { Heading, Box, Text, VStack, HStack, Icon, Image, Badge, Spinner, Tabs, Input, Switch, Flex, Stack } from '@chakra-ui/react';
 import { Button } from "../components/ui/button";
 import { Toaster, toaster } from "../components/ui/toaster";
-import { FaWhatsapp, FaCheckCircle, FaExclamationTriangle, FaStore, FaClock } from 'react-icons/fa';
+import { FaWhatsapp, FaCheckCircle, FaExclamationTriangle, FaClock, FaCreditCard } from 'react-icons/fa';
 import { useApp } from '../context/AppContext';
 import { foodAPI, authAPI } from '../services/api';
 
@@ -17,6 +17,8 @@ export default function Settings() {
   const [storeName, setStoreName] = useState('');
   const [isOpen, setIsOpen] = useState(true);
   const [operatingHours, setOperatingHours] = useState([]);
+  const [pixProvider, setPixProvider] = useState('manual');
+  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
     loadProfile();
@@ -28,6 +30,10 @@ export default function Settings() {
       setStoreName(data.storeName || '');
       setIsOpen(data.isOpen ?? true);
       setOperatingHours(data.operatingHours || []);
+      if (data.paymentConfig) {
+        setPixProvider(data.paymentConfig.pixProvider || 'manual');
+        setApiKey(data.paymentConfig.apiKey || '');
+      }
     } catch (err) {
       toaster.create({ title: "Erro", description: "Falha ao carregar configurações", type: "error" });
     } finally {
@@ -41,6 +47,15 @@ export default function Settings() {
       toaster.create({ title: "Sucesso", description: "Configurações salvas", type: "success" });
     } catch (err) {
       toaster.create({ title: "Erro", description: "Falha ao salvar", type: "error" });
+    }
+  };
+
+  const savePaymentSettings = async () => {
+    try {
+      await authAPI.updatePaymentConfig({ pixProvider, apiKey });
+      toaster.create({ title: "Sucesso", description: "Configurações de pagamento atualizadas", type: "success" });
+    } catch (err) {
+      toaster.create({ title: "Erro", description: "Falha ao salvar provedor de pagamento", type: "error" });
     }
   };
 
@@ -77,6 +92,7 @@ export default function Settings() {
         <Tabs.Root defaultValue="hours" variant="line" colorPalette="brand">
           <Tabs.List mb={6}>
             <Tabs.Trigger value="hours" gap={2}><FaClock /> Loja e Horários</Tabs.Trigger>
+            <Tabs.Trigger value="payments" gap={2}><FaCreditCard /> Pagamentos</Tabs.Trigger>
             <Tabs.Trigger value="whatsapp" gap={2}><FaWhatsapp /> WhatsApp</Tabs.Trigger>
           </Tabs.List>
 
@@ -161,6 +177,49 @@ export default function Settings() {
                   <Button mt={8} colorPalette="brand" size="lg" w="full" onClick={saveSettings}>Salvar Alterações</Button>
                 </Box>
               </VStack>
+            )}
+          </Tabs.Content>
+
+          <Tabs.Content value="payments">
+            {profileLoading ? <Spinner /> : (
+              <Box p={6} bg="white" borderRadius="xl" shadow="sm" borderWidth="1px" maxW="800px">
+                <Heading size="md" mb={2}>Gateway de Pagamentos (Squamata)</Heading>
+                <Text color="gray.600" mb={6}>
+                  Configure as chaves do seu banco para receber via PIX Dinâmico com baixa automática.
+                </Text>
+
+                <VStack align="stretch" gap={5}>
+                  <Box>
+                    <Text fontWeight="bold" mb={2}>Provedor de Pagamentos</Text>
+                    <select
+                      value={pixProvider}
+                      onChange={(e) => setPixProvider(e.target.value)}
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', backgroundColor: '#fff', fontSize: '16px' }}
+                    >
+                      <option value="manual">Modo Manual / Teste (Simula Pagamento)</option>
+                      <option value="pagbank">PagBank (Recomendado para PF/PJ)</option>
+                      <option value="efi">Efí / Gerencianet</option>
+                      <option value="mercado_pago">Mercado Pago</option>
+                    </select>
+                  </Box>
+
+                  <Box>
+                    <Text fontWeight="bold" mb={2}>Token de Integração (API Key)</Text>
+                    <Input
+                      type="password"
+                      size="lg"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="Cole aqui o Token gerado no painel do desenvolvedor..."
+                      bg="white"
+                    />
+                  </Box>
+
+                  <Button mt={6} colorPalette="brand" size="lg" w="full" onClick={savePaymentSettings}>
+                    <FaCheckCircle style={{ marginRight: '8px' }} /> Salvar Configurações
+                  </Button>
+                </VStack>
+              </Box>
             )}
           </Tabs.Content>
 
