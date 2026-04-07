@@ -6,8 +6,9 @@ import {
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   FaCheckCircle, FaUtensils, FaMotorcycle, FaHome,
-  FaClock, FaShoppingBasket, FaMapMarkerAlt, FaCreditCard, FaBoxOpen
+  FaClock, FaShoppingBasket, FaMapMarkerAlt, FaCreditCard, FaBoxOpen, FaQrcode, FaCopy
 } from 'react-icons/fa';
+import { QRCodeCanvas } from 'qrcode.react'; // NOVO: Importação do Gerador de QR Code
 import { foodAPI } from '../services/api';
 
 const STATUS_CONFIG = {
@@ -65,7 +66,6 @@ const TIMELINE_STEPS = [
 
 function StatusTimeline({ currentStatus }) {
   const currentStep = STATUS_CONFIG[currentStatus]?.step ?? 0;
-  // paid=1, so timeline index 0 corresponds to step 1
   const timelineOffset = 1;
 
   return (
@@ -124,6 +124,7 @@ export default function OrderStatusPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [hasCopied, setHasCopied] = useState(false); // NOVO: Estado para o botão de copiar
 
   const fetchStatus = async () => {
     try {
@@ -139,9 +140,19 @@ export default function OrderStatusPage() {
 
   useEffect(() => {
     fetchStatus();
+    // A cada 15 segundos ele vai checar se o status mudou para 'paid'
     const interval = setInterval(fetchStatus, 15000);
     return () => clearInterval(interval);
   }, [orderId]);
+
+  // NOVO: Função para copiar a chave PIX
+  const handleCopyPix = () => {
+    if (order?.payment?.copyPaste) {
+      navigator.clipboard.writeText(order.payment.copyPaste);
+      setHasCopied(true);
+      setTimeout(() => setHasCopied(false), 2000);
+    }
+  };
 
   if (loading) {
     return (
@@ -195,7 +206,56 @@ export default function OrderStatusPage() {
       </Box>
 
       <Container maxW="container.sm" py={8} px={4}>
-        {/* Status Card */}
+
+        {/* ========================================= */}
+        {/* NOVO: BLOCO DE PAGAMENTO PIX EM DESTAQUE */}
+        {/* ========================================= */}
+        {order.currentStatus === 'pending' && order.payment?.method === 'pix' && order.payment?.qrCode && (
+          <Box bg="white" p={6} borderRadius="2xl" boxShadow="0 10px 30px -10px rgba(0,0,0,0.15)" mb={8} border="2px solid" borderColor="brand.500" position="relative" overflow="hidden">
+            <Box position="absolute" top={0} left={0} w="full" h="4px" bg="brand.500" />
+            <VStack gap={4} textAlign="center">
+              <Heading size="md" color="gray.800" display="flex" alignItems="center" gap={2}>
+                <FaQrcode color="var(--chakra-colors-brand-500)" /> Pagamento via PIX
+              </Heading>
+              <Text fontSize="sm" color="gray.600">
+                Abra o app do seu banco e escaneie o QR Code abaixo ou copie a linha digitável para finalizar seu pedido.
+              </Text>
+
+              {/* QR Code Imagem */}
+              <Center p={4} bg="gray.50" borderRadius="xl" border="1px solid" borderColor="gray.200">
+                <QRCodeCanvas value={order.payment.qrCode} size={180} />
+              </Center>
+
+              <Text fontSize="lg" fontWeight="black" color="brand.600">
+                Valor: R$ {order.total.toFixed(2)}
+              </Text>
+
+              {/* Botão Copia e Cola */}
+              <Box w="full" bg="gray.50" p={3} borderRadius="lg" wordBreak="break-all">
+                <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1} textAlign="left">Código Copia e Cola:</Text>
+                <Text fontSize="sm" color="gray.700" textAlign="left" noOfLines={2}>
+                  {order.payment.copyPaste}
+                </Text>
+              </Box>
+
+              <Button 
+                w="full" h="50px" size="lg" colorPalette={hasCopied ? "green" : "brand"} 
+                onClick={handleCopyPix}
+                transition="all 0.2s"
+              >
+                {hasCopied ? (
+                  <><FaCheckCircle style={{ marginRight: '8px' }} /> Código Copiado!</>
+                ) : (
+                  <><FaCopy style={{ marginRight: '8px' }} /> Copiar Código PIX</>
+                )}
+              </Button>
+            </VStack>
+          </Box>
+        )}
+        {/* ========================================= */}
+
+
+        {/* Status Card (Original) */}
         <Box bg="white" p={6} borderRadius="2xl" boxShadow="0 10px 30px -10px rgba(0,0,0,0.08)" mb={6}>
           <Center mb={4}>
             <Flex
@@ -214,7 +274,7 @@ export default function OrderStatusPage() {
           <StatusTimeline currentStatus={order.currentStatus} />
         </Box>
 
-        {/* Detalhes */}
+        {/* Detalhes do Pedido (Original) */}
         <Box bg="white" p={6} borderRadius="2xl" boxShadow="0 10px 30px -10px rgba(0,0,0,0.08)">
           <Heading size="sm" color="gray.700" mb={4} display="flex" alignItems="center" gap={2}>
             <FaShoppingBasket color="var(--chakra-colors-brand-500)" /> Detalhes do Pedido
@@ -251,7 +311,6 @@ export default function OrderStatusPage() {
           )}
         </Box>
 
-        {/* Botão para Fazer Novo Pedido */}
         <Button 
           w="full" h="56px" mt={6} colorPalette="brand" variant="outline"
           onClick={handleNewOrder} fontWeight="bold"
