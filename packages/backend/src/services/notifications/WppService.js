@@ -136,7 +136,7 @@ class WppService {
   async sendMessage(number, message) {
     try {
       // Limpa o número de qualquer caractere não numérico (parênteses, espaços, traços)
-      let formattedNumber = number.replace(/\D/g, '');
+      let formattedNumber = String(number).replace(/\D/g, '');
 
       // Garante o prefixo do Brasil (55)
       if (!formattedNumber.startsWith('55')) {

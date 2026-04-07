@@ -19,7 +19,9 @@ const OrderSchema = new mongoose.Schema({
     method: { type: String, enum: ['pix', 'card'], required: true },
     status: { type: String, default: 'pending' },
     transactionId: String,
-    gatewayProvider: { type: String, enum: ['pagbank', 'stripe', 'pix_internal'], default: 'pagbank' },
+    qrCode: String,        // NOVO: Salva o payload do QR Code vindo do Gateway
+    copyPaste: String,     // NOVO: Salva a linha digitável do Pix
+    gatewayProvider: { type: String }, // ALTERADO: Enum removido. O Food aceita qualquer provedor que o Gateway usar.
     failureMessage: String
   },
   delivery: {
@@ -34,7 +36,6 @@ const OrderSchema = new mongoose.Schema({
     reference: { type: String },
     status: { type: String, default: 'awaiting_payment' }
   },
-  // NOVO: Histórico de status para o "Acompanhamento do Pedido"
   history: [{
     status: String,
     updatedAt: { type: Date, default: Date.now }
