@@ -241,7 +241,9 @@ class OrderController {
         total: order.total,
         payment: {
           method: order.payment.method,
-          status: order.payment.status
+          status: order.payment.status,
+          qrCode: order.payment.qrCode,
+          copyPaste: order.payment.copyPaste
         },
         delivery: order.delivery,
         currentStatus,
