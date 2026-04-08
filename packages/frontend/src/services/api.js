@@ -19,12 +19,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.error("[AXIOS] 401 Unauthorized na URL: ", error.config?.url);
+      
+      const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('tenantId');
 
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
-        window.location.href = '/login';
+      // Só redireciona se estávamos no app protegido e TINHAMOS um token ativo (expirou). 
+      // Se não havia token, é porque acabamos de fazer Logout e essa request "vazou".
+      if (hadToken && window.location.pathname !== '/login' && window.location.pathname !== '/') {
+        window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
       }
     }
     return Promise.reject(error);

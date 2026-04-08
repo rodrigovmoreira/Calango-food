@@ -5,7 +5,7 @@ import { Provider } from "./components/ui/provider";
 import { AppProvider, useApp } from './context/AppContext';
 
 import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
 import Kitchen from './pages/Kitchen';
 import Settings from './pages/Settings';
 import Products from './pages/Products';
@@ -18,15 +18,12 @@ import OrderStatusPage from './pages/OrderStatusPage';
 // Lógica de Proteção
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  // Redireciona para a Landing Page se não tiver token
-  return token ? children : <Navigate to="/" replace />;
-};
-
-// Componente para rotas que logados NÃO devem ver (como Login)
-const PublicOnlyRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  // Se já está logado, manda direto para o painel (Kitchen no seu caso)
-  return token ? <Navigate to="/kitchen" replace /> : children;
+  React.useEffect(() => {
+    if (!token) {
+      window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
+    }
+  }, [token]);
+  return token ? children : null;
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -38,12 +35,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             {/* Landing Page é a porta de entrada */}
             <Route path="/" element={<LandingPage />} />
 
-            {/* Login e Cadastro */}
-            <Route path="/login" element={
-              <PublicOnlyRoute>
-                <Login />
-              </PublicOnlyRoute>
-            } />
+            {/* Auth Callback */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             <Route path="/cardapio/:slug" element={<MenuPages />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />

@@ -62,15 +62,26 @@ export const login = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    // No seu middleware de proteção, o ID do usuário logado é injetado como req.tenantId ou req.userId
-    // Certifique-se de usar o mesmo nome definido no seu middleware de 'protect'
     const userId = req.tenantId || req.userId;
+    
+    // Lazy Initialization: Se a loja Módulo-Tenant não existir, cria com base na sua Identidade Oauth (SSO)
+    const user = await SystemUser.findByIdAndUpdate(
+      userId,
+      {
+        $setOnInsert: {
+          _id: userId,
+          email: req.user?.email || `loja-${userId}@temp.calango.local`,
+          name: req.user?.name || 'Lojista Novo',
+          storeName: 'Calango Food Delivery',
+          isOpen: true,
+          password: 'sso_placeholder_do_not_use' 
+        }
+      },
+      { new: true, upsert: true }
+    );
 
-    const user = await SystemUser.findById(userId);
-
-    // Se o usuário não existe, retornamos 404 em vez de deixar o código quebrar e dar 500
     if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      return res.status(404).json({ message: 'Falha grave na sincronização do Oauth com o Local.' });
     }
 
     res.json({
@@ -84,9 +95,8 @@ export const getProfile = async (req, res) => {
       paymentConfig: user.paymentConfig || { pixProvider: 'manual', apiKey: '' }
     });
   } catch (err) {
-    // Isso vai te mostrar no console do terminal EXATAMENTE o que quebrou
     console.error("Erro no getProfile:", err);
-    res.status(500).json({ message: 'Erro interno ao buscar perfil', error: err.message });
+    res.status(500).json({ message: 'Erro interno ao sincronizar perfil', error: err.message });
   }
 };
 

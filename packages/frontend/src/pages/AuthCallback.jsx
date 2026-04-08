@@ -1,0 +1,63 @@
+import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+import { Flex, Spinner, Text, VStack } from '@chakra-ui/react';
+
+const AuthCallback = () => {
+  const navigate = useNavigate();
+  const { dispatch } = useApp();
+  // Ref para segurar o impacto do React Strict Mode
+  const hasProcessed = useRef(false); 
+
+  useEffect(() => {
+    // Se já processou nesta montagem, aborta para não gerar loop
+    if (hasProcessed.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const userStr = params.get('user');
+
+    if (token && userStr) {
+      hasProcessed.current = true; // Marca como capturado!
+      try {
+        const user = JSON.parse(decodeURIComponent(userStr));
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        if (user.tenantId) {
+          localStorage.setItem('tenantId', user.tenantId);
+        }
+
+        dispatch({ type: 'SET_USER', payload: user });
+        
+        // Redirecionamento seguro para a dashboard
+        navigate('/kitchen', { replace: true });
+      } catch (err) {
+        console.error("Erro ao processar dados de autenticação SSO:", err);
+        window.location.href = 'http://localhost:5174/login?appSlug=calango-food&error=true';
+      }
+    } else {
+      // O SALVA-VIDAS: Se não tem token na URL, verifica se já salvamos ele agorinha no localStorage.
+      const existingToken = localStorage.getItem('token');
+      if (!existingToken) {
+        console.warn("Rota acessada sem token. Devolvendo ao Squamata...");
+        window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
+      } else {
+        // Se o token sumiu da URL mas está no LocalStorage, o Strict Mode tentou nos enganar.
+        // Apenas mandamos para a cozinha.
+        navigate('/kitchen', { replace: true });
+      }
+    }
+  }, [navigate, dispatch]);
+
+  return (
+    <Flex h="100vh" w="100vw" justify="center" align="center" bg="gray.50">
+      <VStack gap={4}>
+        <Spinner size="xl" color="brand.500" />
+        <Text fontSize="lg" color="gray.600">Autenticando sessão com o Identity...</Text>
+      </VStack>
+    </Flex>
+  );
+};
+
+export default AuthCallback;
