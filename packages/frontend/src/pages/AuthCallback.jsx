@@ -34,14 +34,14 @@ const AuthCallback = () => {
         navigate('/kitchen', { replace: true });
       } catch (err) {
         console.error("Erro ao processar dados de autenticação SSO:", err);
-        window.location.href = 'http://localhost:5174/login?appSlug=calango-food&error=true';
+        window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food&error=true';
       }
     } else {
       // O SALVA-VIDAS: Se não tem token na URL, verifica se já salvamos ele agorinha no localStorage.
       const existingToken = localStorage.getItem('token');
       if (!existingToken) {
         console.warn("Rota acessada sem token. Devolvendo ao Squamata...");
-        window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
+        window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food';
       } else {
         // Se o token sumiu da URL mas está no LocalStorage, o Strict Mode tentou nos enganar.
         // Apenas mandamos para a cozinha.

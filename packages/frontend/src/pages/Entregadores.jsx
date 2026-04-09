@@ -63,7 +63,7 @@ export default function Entregadores() {
     // Listen for live status changes from WhatsApp bot
     const tenantId = state.user?.tenantId;
     if (tenantId) {
-      const socket = io('http://localhost:3002', {
+      const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3002', {
         query: { tenantId }
       });
 

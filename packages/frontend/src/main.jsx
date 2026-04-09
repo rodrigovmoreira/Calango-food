@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   React.useEffect(() => {
     if (!token) {
-      window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
+      window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food';
     }
   }, [token]);
   return token ? children : null;

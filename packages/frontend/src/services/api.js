@@ -29,7 +29,7 @@ api.interceptors.response.use(
       // Só redireciona se estávamos no app protegido e TINHAMOS um token ativo (expirou). 
       // Se não havia token, é porque acabamos de fazer Logout e essa request "vazou".
       if (hadToken && window.location.pathname !== '/login' && window.location.pathname !== '/') {
-        window.location.href = 'http://localhost:5174/login?appSlug=calango-food';
+        window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food';
       }
     }
     return Promise.reject(error);

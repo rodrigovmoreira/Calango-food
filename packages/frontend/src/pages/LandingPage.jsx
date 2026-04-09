@@ -39,13 +39,13 @@ const LandingPage = () => {
             </HStack>
 
             <HStack gap={4}>
-              <Button variant="ghost" onClick={() => window.location.href = 'http://localhost:5174/login?appSlug=calango-food'}>
+              <Button variant="ghost" onClick={() => window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food'}>
                 Entrar
               </Button>
               <Button
                 colorPalette="brand"
                 variant="solid"
-                onClick={() => window.location.href = 'http://localhost:5174/login?appSlug=calango-food'}
+                onClick={() => window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food'}
               >
                 Começar Agora
               </Button>
@@ -78,7 +78,7 @@ const LandingPage = () => {
                 size="xl"
                 colorPalette="brand"
                 px={10}
-                onClick={() => window.location.href = 'http://localhost:5174/login?appSlug=calango-food'}
+                onClick={() => window.location.href = (import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174') + '/login?appSlug=calango-food'}
               >
                 <FaWhatsapp /> Criar meu Cardápio
               </Button>
