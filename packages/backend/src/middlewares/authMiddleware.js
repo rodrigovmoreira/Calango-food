@@ -13,7 +13,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: 'Você não está logado.' });
     }
 
-    const secret = process.env.JWT_SECRET || 'super_secret_jwt_key_calango_inc';
+    const secret = process.env.JWT_SECRET_LOGIN || 'super_secret_jwt_key_calango_inc';
     const decoded = jwt.verify(token, secret);
 
     req.tenantId = decoded.uid;

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 // Função auxiliar para criar o Token
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret-calango', {
+  return jwt.sign({ id }, process.env.JWT_SECRET_LOGIN || 'secret-calango', {
     expiresIn: '7d',
   });
 };
